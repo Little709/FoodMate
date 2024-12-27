@@ -81,25 +81,3 @@ def login_user(login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
         username=db_user.username
     )
 
-
-@router.get("/account", response_model=schemas.UserRead)
-def get_account(current_user: models.User = Depends(authutils.get_current_user)):
-    """
-    Retrieves the account information of the currently authenticated user.
-    """
-    return current_user
-
-
-@router.post("/logout", response_model=schemas.Message)
-def logout_user(token: str = Depends(authutils.oauth2_scheme), db: Session = Depends(get_db)):
-    """
-    Logs the user out by adding the token to the blacklist.
-    The token will no longer be valid after this operation.
-    """
-    authutils.add_token_to_blacklist(token, db)
-    return schemas.Message(message="Successfully logged out")
-
-
-@router.get("/test")
-def test_route():
-    return {"message": "Test route works"}

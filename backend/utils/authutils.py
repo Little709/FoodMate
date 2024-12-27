@@ -18,6 +18,12 @@ def get_db():
     finally:
         db.close()
 
+import logging
+logging.basicConfig(level=logging.DEBUG)  # Configure logging level globally
+logger = logging.getLogger(__name__)
+
+
+
 # Load .env from two levels up
 env_path = Path(__file__).resolve().parents[2] / ".env"
 print(f"Trying to load .env from: {env_path}")  # Debug print
@@ -27,7 +33,7 @@ load_dotenv(dotenv_path=env_path)
 # Retrieve the SECRET_KEY
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 # Debugging to confirm the values are loaded
 print(f"SECRET_KEY: {SECRET_KEY}")  # Debug print
@@ -78,11 +84,11 @@ def is_token_blacklisted(token: str, db: Session) -> bool:
 
 # Get the current user and check if the token is blacklisted
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    print(f"Received token: {token}")  # Log the token
+    logger.debug(f"Token passed to get_current_user: {token}")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
-        print(username)
+        logger.debug(f"Decoded payload: {payload}")
         if username is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -90,6 +96,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
                 headers={"WWW-Authenticate": "Bearer"},
             )
         user = db.query(models.User).filter(models.User.username == username).first()
+        logger.debug(f"Found user: {user}")
         if user is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -97,7 +104,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
                 headers={"WWW-Authenticate": "Bearer"},
             )
         return user
-    except JWTError:
+    except JWTError as e:
+        logger.debug(f"JWT error: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token",
