@@ -1,0 +1,8 @@
+/* Root Variables for Fresh and Healthy Theme */
+:root {
+  --primary-color: #61c791; /* Fresh Green */
+  --secondary-color: #e6ffe9; /* Light Mint */
+  --text-color: #333333; /* Dark Grey */
+  --accent-color: #ffad42; /* Bright Orange */
+  --error-color: #ff4d4f; /* Red for errors */
+}
