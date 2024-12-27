@@ -1,11 +1,15 @@
+from sys import prefix
+
 import uvicorn
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from auth.routes import router as auth_router  # Absolute import
 from chat.routes import router as chat_router
+from management.account import router as account_router
 from recipes.routes import router as recipes_router
 from utils.database import Base, engine  # Absolute import
+
 import os
 
 API_IP = os.getenv("API_IP", "127.0.0.1")
@@ -39,16 +43,20 @@ def create_app() -> FastAPI:
     Base.metadata.create_all(bind=engine)
 
     # Public routes (register and login)
-    app.include_router(auth_router, prefix="/auth", tags=["auth"])
+    app.include_router(auth_router,prefix="/auth", tags=["auth"])
+
 
     # Protected routes (require authentication)
-    app.include_router(chat_router, prefix="/chat", tags=["chat"], dependencies=[Depends(get_current_user)])
-    app.include_router(recipes_router, prefix="/recipes", tags=["recipes"], dependencies=[Depends(get_current_user)])
+    # app.include_router(account_router, prefix="/management", tags=["management"], dependencies=[Depends(get_current_user)])
+    app.include_router(account_router, prefix="/management", tags=["management"], dependencies=[Depends(get_current_user)])
+    app.include_router(chat_router,prefix="/chat", tags=["chat"], dependencies=[Depends(get_current_user)])
+    app.include_router(recipes_router,prefix="/recipes", tags=["recipes"], dependencies=[Depends(get_current_user)])
 
     return app
 
 
 app = create_app()
+print(app.routes)
 
 if __name__ == "__main__":
     uvicorn.run(app, host=API_IP, port=int(API_PORT), reload=True)

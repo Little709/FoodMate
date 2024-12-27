@@ -1,15 +1,13 @@
-# backend/schemas.py
 from pydantic import BaseModel, Field, validator
 from typing import Optional
 from enum import Enum
 import re
 
-
+# Enums
 class SexEnum(str, Enum):
     male = "Male"
     female = "Female"
     other = "Other"
-
 
 class ActivityLevelEnum(str, Enum):
     sedentary = "sedentary"
@@ -18,16 +16,14 @@ class ActivityLevelEnum(str, Enum):
     very_active = "very_active"
     extra_active = "extra_active"
 
-
 class GoalEnum(str, Enum):
     lose_weight = "lose_weight"
     maintain_weight = "maintain_weight"
     gain_weight = "gain_weight"
 
-
+# User Schemas
 class UserBase(BaseModel):
     username: str
-
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8)
@@ -54,7 +50,6 @@ class UserCreate(UserBase):
             raise ValueError('Password must contain at least one special character')
         return v
 
-
 class UserRead(UserBase):
     id: int
     age: int
@@ -69,18 +64,30 @@ class UserRead(UserBase):
     class Config:
         orm_mode = True
 
-
 class Token(BaseModel):
     access_token: str
     token_type: str
     user_id: int
     username: str
 
-
 class Message(BaseModel):
     message: str
-
 
 class LoginRequest(BaseModel):
     username: str
     password: str
+
+# Recipe Schemas
+class RecipeBase(BaseModel):
+    title: str
+    instructions: str
+
+class RecipeRead(RecipeBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+class RecipeRating(BaseModel):
+    recipe_id: int
+    rating: int = Field(..., ge=1, le=5)  # 1 to 5 star rating

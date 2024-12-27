@@ -13,23 +13,24 @@ function Login({ setIsLoggedIn }) { // Include setIsLoggedIn prop
   const navigate = useNavigate();
   const location = useLocation(); // Access location state
 
-  useEffect(() => {
-    if (location.state && location.state.registrationSuccess) {
-      // Trigger toast notification
-      toast.success('Registration successful! Please log in.', {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+    useEffect(() => {
+      if (location.state && location.state.registrationSuccess) {
+        // Trigger toast notification
+        toast.success('Registration successful! Please log in.', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
 
-      // Optionally, clear the state to prevent the message from showing again
-      // navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [location]);
+        // Clear the state to prevent the message from showing again
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }, [location, navigate]);
+
 
   const handleLogin = async () => {
     setError(null); // Reset error before each attempt

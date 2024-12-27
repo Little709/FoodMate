@@ -10,8 +10,6 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 router = APIRouter(
-    prefix="/auth",
-    tags=["auth"],
 )
 
 
@@ -61,6 +59,7 @@ def register_user(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=schemas.Token)
 def login_user(login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
+    print("Login endpoint hit")
     db_user = db.query(models.User).filter_by(username=login_data.username).first()
 
     # Check if the user exists
@@ -99,3 +98,8 @@ def logout_user(token: str = Depends(authutils.oauth2_scheme), db: Session = Dep
     """
     authutils.add_token_to_blacklist(token, db)
     return schemas.Message(message="Successfully logged out")
+
+
+@router.get("/test")
+def test_route():
+    return {"message": "Test route works"}

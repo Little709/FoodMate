@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import ChatRoom from './pages/ChatRoom';
 import RecipeList from './pages/RecipeList';
 import ShoppingList from './pages/ShoppingList';
+import UserManagementPage from './pages/UserManagementPage';
 import Logout from './pages/Logout';
 
 // Import React Toastify components and styles
@@ -70,6 +71,11 @@ function App() {
                   </NavLink>
                 </li>
                 <li>
+                  <NavLink to="/usermanagement" className={({ isActive }) => (isActive ? 'active' : '')}>
+                    My account
+                  </NavLink>
+                </li>
+                <li>
                   <NavLink to="/logout" className={({ isActive }) => (isActive ? 'active' : '')}>
                     Logout
                   </NavLink>
@@ -83,6 +89,7 @@ function App() {
               <Route path="/chat" element={<ChatRoom />} />
               <Route path="/recipes" element={<RecipeList />} />
               <Route path="/shopping" element={<ShoppingList />} />
+              <Route path="/usermanagement" element={<UserManagementPage />} />
               <Route path="/logout" element={<Logout setIsLoggedIn={setIsLoggedIn} />} />
               <Route path="/" element={<Navigate to="/recipes" />} /> {/* Default to recipes */}
               <Route path="*" element={<div>Page not found</div>} />

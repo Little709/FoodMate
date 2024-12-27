@@ -8,9 +8,9 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from utils import models
 from utils.database import SessionLocal
-
+from pathlib import Path
 import os
-
+from dotenv import load_dotenv
 def get_db():
     db = SessionLocal()
     try:
@@ -18,10 +18,24 @@ def get_db():
     finally:
         db.close()
 
+# Load .env from two levels up
+env_path = Path(__file__).resolve().parents[2] / ".env"
+print(f"Trying to load .env from: {env_path}")  # Debug print
 
-SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+load_dotenv(dotenv_path=env_path)
+
+# Retrieve the SECRET_KEY
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+
+# Debugging to confirm the values are loaded
+print(f"SECRET_KEY: {SECRET_KEY}")  # Debug print
+print(f"ALGORITHM: {ALGORITHM}")  # Debug print
+print(f"ACCESS_TOKEN_EXPIRE_MINUTES: {ACCESS_TOKEN_EXPIRE_MINUTES}")  # Debug print
+
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY not found in environment variables")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -64,9 +78,11 @@ def is_token_blacklisted(token: str, db: Session) -> bool:
 
 # Get the current user and check if the token is blacklisted
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    print(f"Received token: {token}")  # Log the token
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
+        print(username)
         if username is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
