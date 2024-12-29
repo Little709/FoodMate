@@ -1,0 +1,206 @@
+/* Chat container */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Full viewport height */
+  background-color: var(--background-color);
+  border-radius: 10px;
+  overflow: hidden;
+  padding: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Sidebar Styling */
+.sidebar {
+  width: 150px;
+  background-color: var(--secondary-color);
+  color: var(--background-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px;
+}
+
+.sidebar .button {
+  font-weight: bold;
+  background-color: var(--user-background-color);
+  margin: 10px 0;
+  padding: 10px 15px;
+  font-size: 14px;
+  border-radius: 20px;
+  transition: transform 0.3s ease;
+  width: 100%;
+  color: var(--toast-text-color); /* Ensure button text is white */
+}
+
+.sidebar .button:hover {
+  transform: scale(1.05);
+}
+
+/* Main chat area */
+.chat-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Allow it to expand */
+  overflow: hidden; /* Prevent overflow */
+}
+
+/* Chat Title */
+.chat-title {
+  font-size: 1.2rem;
+  color: var(--primary-color);
+  margin-bottom: 15px;
+}
+
+/* Messages Section */
+.messages {
+  flex: 1; /* Make it fill the remaining space */
+  overflow-y: auto; /* Enable vertical scrolling */
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 10px;
+  background: var(--input-bg-color, #f9f9f9);
+}
+
+
+.message {
+  word-wrap: break-word; /* Ensure words break to fit within the container */
+  word-break: break-word; /* Break long words to avoid overflow */
+  overflow-wrap: break-word; /* For modern browsers */
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: var(--secondary-color);
+  color: var(--background-color);
+  max-width: 80%; /* Adjust message width relative to the chat container */
+}
+
+
+
+/* Input area */
+.input-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.input-area .input-field {
+  min-width: 200px; /* Set a reasonable minimum width */
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color, #ddd);
+  font-size: 14px;
+}
+
+.send-button {
+  font-weight: bold;
+  background-color: var(--primary-color);
+  max-width: 70px;
+  padding: 5px 10px; /* Ensure content fits neatly */
+  font-size: clamp(12px, 2vw, 14px); /* Keep text readable */
+  border-radius: 5px; /* Slightly rounded corners */
+  border: none; /* No border for a cleaner look */
+  transition: background-color 0.3s ease;
+  white-space: nowrap; /* Prevent button text from wrapping */
+  width: auto; /* Ensure button width adjusts to content */
+  height: auto; /* Ensure button height adjusts to content */
+  color: var(--toast-text-color); /* Ensure button text is white */
+}
+
+.send-button:hover {
+  background-color: var(--accent-color);
+}
+
+/* User Data Section */
+.user-data {
+  background-color: var(--user-background-color);
+  border-radius: 10px;
+  padding: 15px;
+  margin-top: 20px;
+  overflow: auto;
+  max-height: 20vh;
+}
+
+/* Sent messages (aligned left) */
+.message.sent {
+  align-self: flex-end;
+  background-color: var(--primary-color);
+  color: #2e2e2e
+  border-radius: 10px 10px 10px 0;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+/* Received messages (aligned right) */
+.message.received {
+  align-self: flex-start;
+  background-color: var(--accent-color);
+  color: #2e2e2e;
+  border-radius: 10px 10px 0 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+
+/* Messages container */
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  overflow-y: auto;
+  flex: 1;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background-color: var(--input-bg-color);
+}
+
+/* Chat room container */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 90vh;
+  background-color: var(--background-color);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  padding: 20px;
+}
+
+/* Chat input */
+.input-area {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.input-field {
+  flex: 1;
+  border-radius: 10px;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  background-color: var(--input-bg-color);
+  color: var(--text-color);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 5px var(--primary-color);
+}
+
+.send-button {
+  background-color: var(--primary-color);
+  color: var(--toast-text-color);
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.send-button:hover {
+  background-color: var(--accent-color);
+}

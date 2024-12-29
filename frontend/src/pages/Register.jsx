@@ -1,72 +1,47 @@
-// Register.jsx
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from "../config";
 import '../styles/register.css';
 
 function Register() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [age, setAge] = useState('');
-  const [sex, setSex] = useState('');
-  const [weight, setWeight] = useState('');
-  const [height, setHeight] = useState('');
-  const [activityLevel, setActivityLevel] = useState('');
-  const [goal, setGoal] = useState('');
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    age: '',
+    sex: '',
+    weight: '',
+    height: '',
+    activity_level: '',
+    goal: '',
+  });
+
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  const location = useLocation();  // Access the state passed from Login page
-  const navigate = useNavigate();  // To redirect after successful registration
-
-  // If the state from Login page is available, populate the form with the data
-  useEffect(() => {
-    if (location.state) {
-      setUsername(location.state.username || '');
-      setPassword(location.state.password || '');
-    }
-  }, [location]);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleRegister = async (e) => {
-    e.preventDefault(); // Prevent form submission from reloading the page
-    setError(null);  // Reset error before each attempt
-
-    // Basic Frontend Validation
-    if (!username || !password || !age || !sex || !weight || !height || !activityLevel || !goal) {
-      setError('Please fill in all required fields.');
-      return;
-    }
-
-    const userData = {
-      username,
-      password,
-      age: Number(age),
-      sex,
-      weight: Number(weight),
-      height: Number(height),
-      activity_level: activityLevel,
-      goal,
-    };
+    e.preventDefault();
+    setError(null);
 
     try {
       const res = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
+        body: JSON.stringify(formData),
       });
 
       const data = await res.json();
-
       if (res.ok) {
-        // Registration successful
-        // Instead of alert, navigate to login with state
         navigate('/login', { state: { registrationSuccess: true } });
       } else {
-        // Show registration error
         setError(data.detail || 'Registration failed');
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again later.');
-      console.error(err);
     }
   };
 
@@ -77,31 +52,35 @@ function Register() {
         <form onSubmit={handleRegister}>
           <input
             placeholder="Username"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
             className="input-field"
             required
           />
           <input
             placeholder="Password"
             type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
             className="input-field"
             required
           />
           <input
             placeholder="Age"
             type="number"
-            value={age}
-            onChange={e => setAge(e.target.value)}
+            name="age"
+            value={formData.age}
+            onChange={handleChange}
             className="input-field"
             min="0"
             required
           />
           <select
-            value={sex}
-            onChange={e => setSex(e.target.value)}
+            name="sex"
+            value={formData.sex}
+            onChange={handleChange}
             className="input-field"
             required
           >
@@ -113,8 +92,9 @@ function Register() {
           <input
             placeholder="Weight (kg)"
             type="number"
-            value={weight}
-            onChange={e => setWeight(e.target.value)}
+            name="weight"
+            value={formData.weight}
+            onChange={handleChange}
             className="input-field"
             min="0"
             step="0.1"
@@ -123,20 +103,22 @@ function Register() {
           <input
             placeholder="Height (cm)"
             type="number"
-            value={height}
-            onChange={e => setHeight(e.target.value)}
+            name="height"
+            value={formData.height}
+            onChange={handleChange}
             className="input-field"
             min="0"
             step="0.1"
             required
           />
           <select
-            value={activityLevel}
-            onChange={e => setActivityLevel(e.target.value)}
+            name="activity_level"
+            value={formData.activity_level}
+            onChange={handleChange}
             className="input-field"
             required
           >
-            <option value="" disabled>Select Activity Level</option>
+          <option value="" disabled>Select Activity Level</option>
             <option value="sedentary">Sedentary (little or no exercise)</option>
             <option value="lightly_active">Lightly Active (light exercise/sports 1-3 days/week)</option>
             <option value="moderately_active">Moderately Active (moderate exercise/sports 3-5 days/week)</option>
@@ -144,8 +126,9 @@ function Register() {
             <option value="extra_active">Extra Active (very hard exercise/sports & physical job or training)</option>
           </select>
           <select
-            value={goal}
-            onChange={e => setGoal(e.target.value)}
+            name="goal"
+            value={formData.goal}
+            onChange={handleChange}
             className="input-field"
             required
           >
@@ -159,7 +142,6 @@ function Register() {
           </button>
         </form>
 
-        {/* Show error message if registration failed */}
         {error && <div className="error-message">{error}</div>}
       </div>
     </div>

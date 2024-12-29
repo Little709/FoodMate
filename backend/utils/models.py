@@ -1,10 +1,9 @@
-# backend/models.py
 from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime, Float
 from datetime import datetime as dt
 import datetime
 from sqlalchemy.orm import relationship
 from utils.database import Base
-
+from sqlalchemy.dialects.postgresql import JSON
 
 class User(Base):
     __tablename__ = "users"
@@ -13,17 +12,23 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
 
-    # Existing preference fields
-    preferred_cuisines = Column(Text, default="")
-    disliked_ingredients = Column(Text, default="")
+    preferred_cuisines = Column(JSON, default=[])
+    disliked_ingredients = Column(JSON, default=[])
+    liked_ingredients = Column(JSON, default=[])
+    allergies = Column(JSON, default=[])
 
-    # New user metrics
+    # New fields
     age = Column(Integer, nullable=False)
     sex = Column(String, nullable=False)
-    weight = Column(Float, nullable=False)  # in kilograms
-    height = Column(Float, nullable=False)  # in centimeters
+    weight = Column(Float, nullable=False)
+    height = Column(Float, nullable=False)
     activity_level = Column(String, nullable=False)
     goal = Column(String, nullable=False)
+    meal_timing = Column(String, default="")
+    portion_size = Column(String, default="")
+    snack_preference = Column(String, default="")
+    dietary_preference = Column(String, default="")
+    personal_story = Column(Text, default="")
 
 
 class Recipe(Base):
@@ -32,7 +37,6 @@ class Recipe(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True, nullable=False)
     instructions = Column(Text, nullable=False)
-    # Possibly store other details like ingredients, etc.
 
 
 class UserRecipeRating(Base):
@@ -41,7 +45,7 @@ class UserRecipeRating(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     recipe_id = Column(Integer, ForeignKey('recipes.id'), nullable=False)
-    rating = Column(Integer, nullable=False)  # 1 to 5 star rating, for example
+    rating = Column(Integer, nullable=False)  # 1 to 5 star rating
 
     user = relationship("User", backref="recipe_ratings")
     recipe = relationship("Recipe", backref="user_ratings")

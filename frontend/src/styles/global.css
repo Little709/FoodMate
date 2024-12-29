@@ -1,5 +1,6 @@
-/* Import the colors */
-@import './warm-colors.css';
+/* Import the Poppins font and color variables */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import './fresh-colors.css';
 
 /* Reset styles */
 * {
@@ -10,7 +11,7 @@
 
 /* Body styles */
 body {
-  font-family: 'Arial', sans-serif;
+  font-family: 'Poppins', sans-serif;
   background-color: var(--secondary-color);
   color: var(--text-color);
   line-height: 1.6;
@@ -31,7 +32,7 @@ header nav ul {
 
 header nav a {
   text-decoration: none;
-  color: white;
+  color: var(--text-color);
   font-weight: bold;
   transition: color 0.3s;
 }
@@ -47,9 +48,9 @@ main {
 
 /* Cards */
 .card {
-  background: white;
+  background: var(--background-color);
   border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 10px var(--shadow-color);
   padding: 20px;
   margin: 20px auto;
   max-width: 600px;
@@ -59,7 +60,7 @@ main {
 /* Buttons */
 .button {
   background-color: var(--primary-color);
-  color: white;
+  color: var(--text-color);
   border: none;
   padding: 10px 20px;
   border-radius: 5px;
@@ -77,13 +78,50 @@ main {
   width: 100%;
   padding: 10px;
   margin: 10px 0;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 5px;
   font-size: 14px;
+  background-color: var(--input-bg-color);
+  color: var(--text-color);
 }
 
 .input-field:focus,
 .textarea-field:focus {
   border-color: var(--accent-color);
   outline: none;
+  box-shadow: 0 0 5px var(--accent-color);
 }
+
+/* Dropdown Styles */
+select {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  font-size: 14px;
+  background-color: var(--dropdown-bg-color);
+  color: var(--dropdown-text-color);
+  border: 1px solid var(--dropdown-border-color);
+  border-radius: 5px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='%23" + encodeURIComponent(var(--dropdown-arrow-color)) + "%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 10px 10px;
+}
+
+select:hover {
+  background-color: var(--dropdown-hover-bg);
+}
+
+select:focus {
+  border-color: var(--accent-color);
+  outline: none;
+  box-shadow: 0 0 5px var(--accent-color);
+}
+
+option {
+  background-color: var(--dropdown-bg-color);
+  color: var(--dropdown-text-color);
+}
+

@@ -1,18 +1,19 @@
-// src/pages/Logout.jsx
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const Logout = () => {
+const Logout = ({ setIsLoggedIn }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
     // Remove token from localStorage
     localStorage.removeItem('token');
-    // Redirect to login page after logging out
+    // Update the App state
+    setIsLoggedIn(false);
+    // Redirect to login page
     navigate('/login');
-  }, [navigate]);
+  }, [navigate, setIsLoggedIn]);
 
-  return <div>Logging out...</div>; // You can display a loading message here
+  return <div>Logging out...</div>;
 };
 
 export default Logout;

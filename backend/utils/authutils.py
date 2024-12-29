@@ -1,5 +1,6 @@
 # Updated backend/auth/utils.py
 from datetime import datetime, timedelta
+import datetime as dt
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -7,6 +8,7 @@ from fastapi import HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from utils import models
+from utils.models import User
 from utils.database import SessionLocal
 from pathlib import Path
 import os
@@ -19,14 +21,14 @@ def get_db():
         db.close()
 
 import logging
-logging.basicConfig(level=logging.DEBUG)  # Configure logging level globally
+logging.basicConfig(level=logging.INFO)  # Configure logging level globally
 logger = logging.getLogger(__name__)
 
 
 
 # Load .env from two levels up
 env_path = Path(__file__).resolve().parents[2] / ".env"
-print(f"Trying to load .env from: {env_path}")  # Debug print
+# print(f"Trying to load .env from: {env_path}")  # Debug print
 
 load_dotenv(dotenv_path=env_path)
 
@@ -36,9 +38,9 @@ ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 # Debugging to confirm the values are loaded
-print(f"SECRET_KEY: {SECRET_KEY}")  # Debug print
-print(f"ALGORITHM: {ALGORITHM}")  # Debug print
-print(f"ACCESS_TOKEN_EXPIRE_MINUTES: {ACCESS_TOKEN_EXPIRE_MINUTES}")  # Debug print
+# print(f"SECRET_KEY: {SECRET_KEY}")  # Debug print
+# print(f"ALGORITHM: {ALGORITHM}")  # Debug print
+# print(f"ACCESS_TOKEN_EXPIRE_MINUTES: {ACCESS_TOKEN_EXPIRE_MINUTES}")  # Debug print
 
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY not found in environment variables")
@@ -64,7 +66,7 @@ def authenticate_user(username: str, password: str, db: Session):
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    expire = datetime.now(dt.UTC) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -111,3 +113,31 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             detail="Invalid token",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+def verify_token(token: str):
+    """Verifies a JWT token and returns the associated user."""
+    try:
+        # Decode the token
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token payload",
+            )
+
+        # Check if the user exists in the database
+        with SessionLocal() as db:
+            user = db.query(User).filter(User.username == username).first()
+            if user is None:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="User not found",
+                )
+            return user
+    except JWTError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+        ) from e

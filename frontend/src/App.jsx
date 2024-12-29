@@ -1,7 +1,7 @@
-// App.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import './styles/global.css';
-import { BrowserRouter as Router, Routes, Route, Navigate, NavLink } from 'react-router-dom';
+import './styles/dark-mode.css'; // Dark mode overrides
+import { BrowserRouter as Router, Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ChatRoom from './pages/ChatRoom';
@@ -10,36 +10,49 @@ import ShoppingList from './pages/ShoppingList';
 import UserManagementPage from './pages/UserManagementPage';
 import Logout from './pages/Logout';
 
-// Import React Toastify components and styles
+// Import Toastify Container
 import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import './services/styles/ReactToastify.css';
 
-function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+// Import Notification Service
+import { notifySuccess, notifyError } from './services/notificationService';
 
-  // Check for token in localStorage on initial load
+const AuthMiddleware = ({ isLoggedIn, children }) => {
+  const location = useLocation();
+  const publicRoutes = ['/login', '/register'];
+
+  if (!isLoggedIn && !publicRoutes.includes(location.pathname)) {
+    return <Navigate to="/login" />;
+  }
+
+  return children;
+};
+
+function AppContent({ isLoggedIn, setIsLoggedIn, notifySuccess, notifyError }) {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(token !== null); // Set isLoggedIn based on token presence
-  }, []);
+    const root = document.documentElement;
+    if (!isDarkMode) {
+      root.classList.add('dark-mode');
+    } else {
+      root.classList.remove('dark-mode');
+    }
+  }, [isDarkMode]);
 
-  // Listen for changes in localStorage
+  const location = useLocation();
+
   useEffect(() => {
-    const handleStorageChange = () => {
-      const token = localStorage.getItem('token');
-      setIsLoggedIn(token !== null);
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+    if (isLoggedIn) {
+      localStorage.setItem('lastVisitedPath', location.pathname);
+    }
+  }, [location, isLoggedIn]);
 
   return (
-    <Router>
-      {/* ToastContainer placed once in the app */}
+    <>
       <ToastContainer
         position="top-right"
-        autoClose={5000}
+        autoClose={1000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
@@ -47,65 +60,109 @@ function App() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="colored" // Optional: choose a theme
+        theme="colored"
       />
 
-      {isLoggedIn ? (
-        <div>
-          <header>
-            <nav>
-              <ul className="nav-links">
-                <li>
-                  <NavLink to="/chat" className={({ isActive }) => (isActive ? 'active' : '')}>
-                    Chat
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/recipes" className={({ isActive }) => (isActive ? 'active' : '')}>
-                    Recipes
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/shopping" className={({ isActive }) => (isActive ? 'active' : '')}>
-                    Shopping List
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/usermanagement" className={({ isActive }) => (isActive ? 'active' : '')}>
-                    My account
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/logout" className={({ isActive }) => (isActive ? 'active' : '')}>
-                    Logout
-                  </NavLink>
-                </li>
-              </ul>
-            </nav>
-          </header>
+      {isLoggedIn && (
+        <header>
+          <nav>
+            <ul className="nav-links">
+              <li>
+                <NavLink to="/chat" className={({ isActive }) => (isActive ? 'active' : '')}>
+                  Chat
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/recipes" className={({ isActive }) => (isActive ? 'active' : '')}>
+                  Recipes
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/shopping" className={({ isActive }) => (isActive ? 'active' : '')}>
+                  Shopping List
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/usermanagement" className={({ isActive }) => (isActive ? 'active' : '')}>
+                  My Account
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/logout" className={({ isActive }) => (isActive ? 'active' : '')}>
+                  Logout
+                </NavLink>
+              </li>
+            </ul>
+          </nav>
+        </header>
+      )}
 
-          <main>
-            <Routes>
-              <Route path="/chat" element={<ChatRoom />} />
-              <Route path="/recipes" element={<RecipeList />} />
-              <Route path="/shopping" element={<ShoppingList />} />
-              <Route path="/usermanagement" element={<UserManagementPage />} />
-              <Route path="/logout" element={<Logout setIsLoggedIn={setIsLoggedIn} />} />
-              <Route path="/" element={<Navigate to="/recipes" />} /> {/* Default to recipes */}
-              <Route path="*" element={<div>Page not found</div>} />
-            </Routes>
-          </main>
-        </div>
-      ) : (
-        <div>
+      <main>
+        <AuthMiddleware isLoggedIn={isLoggedIn}>
           <Routes>
             <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/" element={<Navigate to="/login" />} /> {/* Redirect to login */}
-            <Route path="*" element={<Navigate to="/login" />} /> {/* Default to login */}
+            <Route
+              path="/chat"
+              element={<ChatRoom notifySuccess={notifySuccess} notifyError={notifyError} />}
+            />
+            <Route
+              path="/recipes"
+              element={<RecipeList notifySuccess={notifySuccess} notifyError={notifyError} />}
+            />
+            <Route
+              path="/shopping"
+              element={<ShoppingList notifySuccess={notifySuccess} notifyError={notifyError} />}
+            />
+            <Route
+              path="/usermanagement"
+              element={<UserManagementPage notifySuccess={notifySuccess} notifyError={notifyError} />}
+            />
+            <Route path="/logout" element={<Logout setIsLoggedIn={setIsLoggedIn} />} />
+            <Route
+              path="/"
+              element={<Navigate to={isLoggedIn ? localStorage.getItem('lastVisitedPath') || '/recipes' : '/login'} />}
+            />
+            <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
-        </div>
-      )}
+        </AuthMiddleware>
+      </main>
+    </>
+  );
+}
+
+function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const token = localStorage.getItem('token');
+      setIsLoggedIn(!!token);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <Router>
+      <AppContent
+        isLoggedIn={isLoggedIn}
+        setIsLoggedIn={setIsLoggedIn}
+        notifySuccess={notifySuccess}
+        notifyError={notifyError}
+      />
     </Router>
   );
 }

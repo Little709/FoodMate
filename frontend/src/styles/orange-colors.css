@@ -1,8 +1,0 @@
-/* Root Variables for Theme Colors */
-:root {
-  --primary-color: #ff6f61; /* Warm orange for highlights */
-  --secondary-color: #ffe8d6; /* Light cream for backgrounds */
-  --text-color: #333; /* Dark text */
-  --accent-color: #61c791; /* Fresh green for accents */
-  --error-color: #ff4d4f; /* Red for errors */
-}

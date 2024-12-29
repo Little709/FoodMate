@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, validator
-from typing import Optional
+from typing import List, Optional
 from enum import Enum
 import re
 
@@ -33,22 +33,16 @@ class UserCreate(UserBase):
     height: float = Field(..., gt=0)
     activity_level: ActivityLevelEnum
     goal: GoalEnum
-    preferred_cuisines: Optional[str] = ""
-    disliked_ingredients: Optional[str] = ""
-
-    @validator('password')
-    def validate_password(cls, v):
-        if len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
-        if not re.search(r"\d", v):
-            raise ValueError('Password must contain at least one digit')
-        if not re.search(r"[A-Z]", v):
-            raise ValueError('Password must contain at least one uppercase letter')
-        if not re.search(r"[a-z]", v):
-            raise ValueError('Password must contain at least one lowercase letter')
-        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
-            raise ValueError('Password must contain at least one special character')
-        return v
+    #TODO: below = "| None = None" but it should really be "Field(default_factory=list)". can't really figure out why that doesn't work.
+    preferred_cuisines: Optional[List[str]] | None = None
+    disliked_ingredients: Optional[List[str]] | None = None
+    liked_ingredients: Optional[List[str]] | None = None
+    allergies: Optional[List[str]] | None = None
+    meal_timing: Optional[str] = ""
+    portion_size: Optional[str] = ""
+    snack_preference: Optional[str] = ""
+    dietary_preference: Optional[str] = ""
+    personal_story: Optional[str] = ""
 
 class UserRead(UserBase):
     id: int
@@ -58,11 +52,35 @@ class UserRead(UserBase):
     height: float
     activity_level: ActivityLevelEnum
     goal: GoalEnum
-    preferred_cuisines: Optional[str] = ""
-    disliked_ingredients: Optional[str] = ""
+    preferred_cuisines: Optional[List[str]] = ""
+    disliked_ingredients: Optional[List[str]] = ""
+    liked_ingredients: Optional[List[str]] = ""
+    allergies: Optional[List[str]] = ""
+    meal_timing: Optional[str] = ""
+    portion_size: Optional[str] = ""
+    snack_preference: Optional[str] = ""
+    dietary_preference: Optional[str] = ""
+    personal_story: Optional[str] = ""
 
     class Config:
         orm_mode = True
+
+class UserUpdate(BaseModel):
+    age: Optional[int]
+    sex: Optional[SexEnum]
+    weight: Optional[float]
+    height: Optional[float]
+    activity_level: Optional[ActivityLevelEnum]
+    goal: Optional[GoalEnum]
+    preferred_cuisines: Optional[List[str]]
+    disliked_ingredients: Optional[List[str]]
+    liked_ingredients: Optional[List[str]]
+    allergies: Optional[List[str]]
+    meal_timing: Optional[str]
+    portion_size: Optional[str]
+    snack_preference: Optional[str]
+    dietary_preference: Optional[str]
+    personal_story: Optional[str]
 
 class Token(BaseModel):
     access_token: str
