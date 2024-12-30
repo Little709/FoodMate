@@ -3,8 +3,7 @@ from datetime import datetime as dt
 import datetime
 from sqlalchemy.orm import relationship
 from utils.database import Base
-from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSON, UUID
 import uuid
 
 class User(Base):

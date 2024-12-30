@@ -1,7 +1,9 @@
 from pydantic import BaseModel, Field, validator
 from typing import List, Optional
 from enum import Enum
+# from sqlalchemy.dialects.postgresql import UUID
 from uuid import UUID
+import uuid
 from datetime import datetime
 # Enums
 class SexEnum(str, Enum):
@@ -45,7 +47,7 @@ class UserCreate(UserBase):
     personal_story: Optional[str] = ""
 
 class UserRead(UserBase):
-    id: int
+    id: UUID
     age: int
     sex: SexEnum
     weight: float
@@ -85,7 +87,7 @@ class UserUpdate(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
-    user_id: int
+    user_id: UUID
     username: str
 
 class Message(BaseModel):

@@ -2,7 +2,6 @@
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy.dialects.postgresql import UUID
 from utils.schemas import UserRead, CreateChatSchema, ChatSummary
 from utils.database import SessionLocal as GeneralSession
 from utils.models import User, ChatsMetadata
@@ -12,6 +11,7 @@ from .chat_database.schemas import ChatMessageCreate, ChatMessageRead
 from typing import List
 from utils.authutils import verify_token
 import uuid
+from uuid import UUID
 import json
 from datetime import datetime as dt
 
