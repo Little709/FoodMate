@@ -1,26 +1,24 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
-from uuid import UUID
 
 class ChatMessageBase(BaseModel):
-    chatroom_id: UUID = Field(..., description="The unique identifier for the chatroom.")
-    user_id: UUID = Field(..., description="The unique identifier for the user sending the message.")
+    user_id: str = Field(..., description="The unique identifier for the user sending the message.")
     message: str = Field(..., description="The message content.")
 
 class ChatMessageCreate(ChatMessageBase):
     pass
 
 class ChatMessageRead(ChatMessageBase):
-    id: UUID
+    id: int  # Auto-incrementing ID for sorting
     timestamp: datetime
-    message: str  # Explicit inclusion (optional)
+    type: Optional[str] = None  # Optional field with a default value of None
 
     class Config:
         from_attributes = True
 
 class ChatRoomActions(BaseModel):
-    chatroom_id: UUID = Field(..., description="The unique identifier for the chatroom.")
+    chatroom_id: str = Field(..., description="The unique identifier for the chatroom.")
 
     class Config:
         json_schema_extra = {
@@ -30,5 +28,5 @@ class ChatRoomActions(BaseModel):
         }
 
 class ChatRoomMessageList(BaseModel):
-    chatroom_id: UUID = Field(..., description="The unique identifier for the chatroom.")
+    chatroom_id: str = Field(..., description="The unique identifier for the chatroom.")
     messages: List[ChatMessageRead] = Field(..., description="A list of messages in the chatroom.")

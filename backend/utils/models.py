@@ -3,7 +3,7 @@ from datetime import datetime as dt
 import datetime
 from sqlalchemy.orm import relationship
 from utils.database import Base
-from sqlalchemy.dialects.postgresql import JSON, UUID
+from sqlalchemy.dialects.postgresql import JSON, UUID,JSONB
 import uuid
 
 class User(Base):
@@ -64,8 +64,8 @@ class ChatsMetadata(Base):
     __tablename__ = "chats_metadata"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    display_name = Column(String, default='')
-    participants = Column(JSON, nullable=False)  # JSON list of user IDs
+    display_name = Column(String, default='', nullable=False)  # Ensure nullable=False for updates
+    participants = Column(JSONB, nullable=False)  # JSON list of user IDs
     creation_date = Column(DateTime, default=dt.utcnow, nullable=False)
     last_activity = Column(DateTime, default=dt.utcnow, onupdate=dt.utcnow, nullable=False)
 

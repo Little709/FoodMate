@@ -113,7 +113,7 @@ class RecipeRating(BaseModel):
     rating: int = Field(..., ge=1, le=5)  # 1 to 5 star rating
 
 class CreateChatSchema(BaseModel):
-    participants: List[int]
+    participants: List[UUID]
 
     class Config:
         json_schema_extra = {
@@ -122,6 +122,17 @@ class CreateChatSchema(BaseModel):
             }
         }
 
+class ChatResponseSchema(BaseModel):
+    id: UUID  # UUID serialized as a string
+    display_name: str
+    participants: List[UUID]  # Ensure participants are serialized as strings
+    creation_date: datetime
+    last_activity: datetime
+
+    class Config:
+        from_attributes = True  # Enables compatibility with SQLAlchemy models
+
+
 class ChatSummary(BaseModel):
     id: UUID
     display_name: str
@@ -129,3 +140,8 @@ class ChatSummary(BaseModel):
 
     class Config:
         from_attributes = True
+
+class UpdateChatMetadata(BaseModel):
+    display_name: Optional[str] = None
+    last_activity: Optional[datetime] = None
+    participants: Optional[List[UUID]] = None  # Example of updating participants, if needed

@@ -1,134 +1,404 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { API_BASE_URL } from "../config";
+import Wizard from './mealWizard';
 import '../styles/chatroom.css';
 
 function ChatRoom({ notifySuccess, notifyError }) {
-  const messagesEndRef = useRef(null);
-  const [room, setRoom] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [message, setMessage] = useState('');
-  const [chats, setChats] = useState([]); // List of recent chats
-  const wsRef = useRef(null); // WebSocket ref
-  const [showChat, setShowChat] = useState(false);
+    const messagesEndRef = useRef(null);
+    const [room, setRoom] = useState('');
+    const [messages, setMessages] = useState([]);
+    const [message, setMessage] = useState('');
+    const [recentChats, setRecentChats] = useState([]);
+    const [userData, setUserData] = useState(null);
+    const [contextMenuVisible, setContextMenuVisible] = useState(false);
+    const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
+    const [selectedChatId, setSelectedChatId] = useState(null);
+    const wsRef = useRef(null);
+    const [isEditingTitle, setIsEditingTitle] = useState(false); // New state for editing title
+    const [editedTitle, setEditedTitle] = useState('');
 
-  useEffect(() => {
-    fetchChats(); // Fetch recent chats on component load
-  }, []);
+    const isMessageUnique = (messages, newMessage) => {
+        return !messages.some((message) => message.id === newMessage.id);
+    };
+    const handleChatClick = async (chatId, displayName) => {
+        setSelectedChatId(chatId); // Ensure chatId is set
+        setRoom(displayName || chatId);
+        setMessages([]); // Clear current messages
+        await fetchMessages(chatId); // Fetch all existing messages
+        connectToWebSocket(chatId); // Open WebSocket after fetching messages
+    };
 
-  // Fetch recent chats
-  const fetchChats = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("user_id"); // Ensure user_id is stored in localStorage
-      const res = await fetch(`${API_BASE_URL}/user/${userId}/chats`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setChats(data);
-        notifySuccess("Chats fetched successfully.");
-      } else {
-        notifyError("Failed to fetch chats.");
-      }
-    } catch (err) {
-      notifyError("An error occurred while fetching chats.");
+    const formatTimestamp = (timestamp) => {
+        const now = new Date();
+        const chatDate = new Date(timestamp);
+        if (
+            now.getFullYear() === chatDate.getFullYear() &&
+            now.getMonth() === chatDate.getMonth() &&
+            now.getDate() === chatDate.getDate()
+        ) {
+            return format(chatDate, 'HH:mm'); // Format time for today's chats
+        } else {
+            return format(chatDate, 'dd-MM-yy'); // Format date for other days
+        }
+    };
+
+    const handleContextMenu = (e, chatId) => {
+        e.preventDefault();
+        setContextMenuPosition({ x: e.clientX, y: e.clientY });
+        setSelectedChatId(chatId);
+        setContextMenuVisible(true);
+    };
+
+    const handleDeleteChat = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(`${API_BASE_URL}/chat/delete/${selectedChatId}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (res.ok) {
+                // Remove the chat from the recent chats list
+                setRecentChats(recentChats.filter((chat) => chat.id !== selectedChatId));
+                setRoom('');  // Clear current room
+                setMessages([]);  // Clear current messages
+                console.log("Chat deleted successfully");
+            } else {
+                notifyError("Failed to delete chat.");
+            }
+        } catch (err) {
+            notifyError("An error occurred while deleting the chat.");
+        }
+    };
+
+    const closeContextMenu = () => {
+        setContextMenuVisible(false);
+    };
+
+    const scrollToBottom = () => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
+    useEffect(() => {
+        fetchRecentChats();
+        fetchUser();
+    }, []);
+
+    const syncMessages = async (chatId, lastTimestamp) => {
+        const token = localStorage.getItem("token");
+        try {
+            const res = await fetch(
+                `${API_BASE_URL}/chat/${chatId}/sync-messages?since=${encodeURIComponent(lastTimestamp)}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            if (res.ok) {
+                const newMessages = await res.json();
+                setMessages((prevMessages) => [
+                    ...prevMessages,
+                    ...newMessages.filter((msg) => isMessageUnique(prevMessages, msg)),
+                ]);
+            } else {
+                console.error("Failed to sync messages");
+                notifyError("Could not sync messages.");
+            }
+        } catch (err) {
+            console.error("Error syncing messages:", err);
+            notifyError("An error occurred while syncing messages.");
+        }
+    };
+
+    const connectToWebSocket = async (chatId) => {
+        const token = localStorage.getItem("token");
+
+        // Initialize WebSocket connection first
+        if (wsRef.current) {
+            wsRef.current.close();
+        }
+        wsRef.current = new WebSocket(`${API_BASE_URL}/chat/room?chatid=${chatId}&token=${token}`);
+        wsRef.current.onopen = () => {
+            console.log(`Connected to chat room: ${chatId}`);
+        };
+        wsRef.current.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                console.log("Received WebSocket Message:", data); // Debug incoming message
+
+                const { id, timestamp, sender, content , type} = data;
+                setMessages((prev) => [
+                    ...prev,
+                    { id, timestamp, user_id: sender, message: content, type: type},
+                ]);
+            } catch (err) {
+                console.error("Error parsing WebSocket message:", err);
+            }
+        };
+        wsRef.current.onclose = () => {
+            console.log(`Disconnected from chat room: ${chatId}`);
+        };
+        wsRef.current.onerror = (error) => {
+            console.error("WebSocket error:", error);
+            notifyError("WebSocket connection error.");
+        };
+
+        // Sync messages after WebSocket is open
+        const lastTimestamp = messages.length ? messages[messages.length - 1].timestamp : null;
+        if (lastTimestamp) {
+            try {
+                await syncMessages(chatId, lastTimestamp);
+            } catch (err) {
+                console.error("Error syncing messages:", err);
+            }
+        }
+    };
+
+
+
+    const fetchUser = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(`${API_BASE_URL}/management/account`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.ok) {
+                const backendData = await res.json();
+                setUserData(backendData);
+                notifySuccess("User data fetched successfully.");
+            } else {
+                notifyError("Failed to fetch user information.");
+            }
+        } catch (err) {
+            notifyError("An error occurred while fetching user data.");
+        }
+    };
+
+    const fetchRecentChats = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(`${API_BASE_URL}/chat/chats`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.ok) {
+                const chats = await res.json();
+                console.log(chats)
+                setRecentChats(chats);
+            } else {
+                notifyError("Failed to fetch recent chats.");
+            }
+        } catch (err) {
+            notifyError("An error occurred while fetching recent chats.");
+        }
+    };
+
+    const fetchMessages = async (chatId) => {
+        const token = localStorage.getItem("token");
+        try {
+            const res = await fetch(`${API_BASE_URL}/chat/${chatId}/messages`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (res.ok) {
+                const messagesData = await res.json();
+                console.log(messagesData)
+                setMessages(messagesData);
+            } else {
+                console.error("Failed to fetch messages");
+                notifyError("Could not load messages.");
+            }
+        } catch (err) {
+            console.error("Error fetching messages:", err);
+            notifyError("An error occurred while fetching messages.");
+        }
+    };
+
+    const startNewChat = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(`${API_BASE_URL}/chat/new`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+            if (res.ok) {
+                const chat = await res.json();
+                setRoom(chat.display_name || chat.id); // Use display_name or fallback to id for user
+                setMessages([]);
+                setRecentChats((prevChats) => [...prevChats, chat]); // Add to recent chats
+                connectToWebSocket(chat.id); // Use id for backend operations
+                notifySuccess("New chat started!");
+            } else {
+                notifyError("Failed to start a new chat.");
+            }
+        } catch (err) {
+            notifyError("An error occurred while starting a new chat.");
+        }
+    };
+
+    const sendMessage = () => {
+        if (!message.trim()) return;
+
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+            wsRef.current.send(message);
+
+            // Add the sent message with the correct structure to the messages state
+            const timestamp = new Date().toISOString();
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: `temp-${Date.now()}`, // Temporary ID until a backend response provides the real ID
+                    timestamp,
+                    user_id: "You", // Represent the current user
+                    message: message, // Use `message` to align with the rendering logic
+                    type: "sent", // Explicitly mark as "sent"
+                },
+            ]);
+
+            setMessage('');
+        }
+    };
+
+const handleTitleSave = async () => {
+    if (!selectedChatId) {
+        notifyError("No chat selected.");
+        return;
     }
-  };
 
-  // Handle new chat creation
-  const createNewChat = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/chats/new`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ participants: [] }), // Add participants as needed
-      });
-
-      if (res.ok) {
-        const newChat = await res.json();
-        setChats((prev) => [newChat, ...prev]); // Add new chat to the top of the list
-        setRoom(newChat.id); // Set the new chat as the current room
-        setShowChat(true);
-        notifySuccess("New chat created successfully.");
-      } else {
-        notifyError("Failed to create a new chat.");
-      }
-    } catch (err) {
-      notifyError("An error occurred while creating a new chat.");
+    if (editedTitle.trim() === "") {
+        notifyError("Title cannot be empty.");
+        return;
     }
-  };
 
-  // Handle chat selection
-  const selectChat = (chatId) => {
-    setRoom(chatId);
-    setShowChat(true);
-  };
+    try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API_BASE_URL}/chat/${selectedChatId}/metadata`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ display_name: editedTitle }),
+        });
 
-  const sendMessage = () => {
-    if (!message.trim()) return;
-    const newMessages = [...messages, `You: ${message}`];
-    setMessages(newMessages);
-    setMessage('');
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+        if (res.ok) {
+            setRoom(editedTitle); // Update the displayed room name
+            setRecentChats((prevChats) =>
+                prevChats.map((chat) =>
+                    chat.id === selectedChatId
+                        ? { ...chat, display_name: editedTitle }
+                        : chat
+                )
+            ); // Update the sidebar
+            notifySuccess("Chat title updated successfully!");
+            setIsEditingTitle(false);
+        } else {
+            notifyError("Failed to update chat title.");
+        }
+    } catch (err) {
+        console.error("Error updating chat title:", err);
+        notifyError("An error occurred while updating the chat title.");
+    }
+};
 
-  return (
-    <div className="chat-container">
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <button className="button" onClick={createNewChat}>
-          New Chat
-        </button>
-        <div className="recent-chats">
-          <h3>Recent Chats</h3>
-          {chats.map((chat) => (
-            <div
-              key={chat.id}
-              className="chat-item"
-              onClick={() => selectChat(chat.id)}
-            >
-              {chat.display_name || "Unnamed Chat"}
+
+
+    return (
+        <div className="chat-container">
+            <div className="sidebar">
+                <button className="button" onClick={startNewChat}>
+                    New Chat
+                </button>
+                <h3>Recent Chats</h3>
+                <ul className="chat-list">
+                    {recentChats.map((chat) => (
+                        <li
+                            key={chat.id}
+                            onClick={() => handleChatClick(chat.id, chat.display_name || chat.id)}
+                            onContextMenu={(e) => handleContextMenu(e, chat.id)} // Context menu event
+                        >
+                            <span>{chat.display_name || chat.id}</span>
+                            <span className="timestamp">
+{/*                                 {chat.last_activity ? formatTimestamp(chat.last_activity) : 'No activity'} */}
+                            </span>
+                        </li>
+                    ))}
+                </ul>
             </div>
-          ))}
-        </div>
-      </aside>
+            <main className="chat-main">
+                <div
+                    className="chat-title-container"
+                    onMouseEnter={() => setIsEditingTitle(true)}
+                    onMouseLeave={() => setIsEditingTitle(false)}
+                >
+                    {isEditingTitle ? (
+                        <div className="edit-title">
+                            <input
+                                type="text"
+                                value={editedTitle || room}
+                                onChange={(e) => setEditedTitle(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleTitleSave()}
+                            />
+                            <button className="send-button" onClick={handleTitleSave}>Save</button>
+                        </div>
+                    ) : (
+                        <h2 className="chat-title">{room || "Unknown Room"}</h2>
+                    )}
+                </div>
 
-      {/* Chat Main */}
-      {showChat ? (
-        <main className="chat-main">
-          <h2 className="chat-title">Chat Room ({room})</h2>
-          <div className="messages">
-            {messages.map((m, index) => (
-              <div key={index} className={`message ${m.startsWith("You:") ? "sent" : "received"}`}>
-                {m}
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-          <div className="input-area">
-            <input
-              className="input-field"
-              placeholder="Type message..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            />
-            <button className="send-button" onClick={sendMessage}>
-              Send
-            </button>
-          </div>
-        </main>
-      ) : (
-        <div className="welcome-message">Select or create a chat to get started!</div>
-      )}
-    </div>
-  );
+                <div className="messages">
+                    {messages.map((m, index) => (
+                        <div
+                            key={m.id || index}
+                            className={`message ${m.type === "received" ? "received" : "sent"}`}
+                        >
+                            {m.type === "received" ? (
+                                <span>
+                                    <strong>{m.user_id}:</strong> {m.message}
+                                </span>
+                            ) : (
+                                <span>{m.message}</span>
+                            )}
+                        </div>
+                    ))}
+                    <div ref={messagesEndRef} />
+                </div>
+
+                <div className="input-area">
+                    <input
+                        placeholder="Type message..."
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                    />
+                    <button onClick={sendMessage}>Send</button>
+                </div>
+            </main>
+            {/* Context Menu */}
+            {contextMenuVisible && (
+                <div
+                    className="context-menu"
+                    style={{
+                        position: "absolute",
+                        top: contextMenuPosition.y,
+                        left: contextMenuPosition.x,
+                    }}
+                    onClick={closeContextMenu}
+                >
+                    <button onClick={handleDeleteChat}>Delete Chat</button>
+                </div>
+            )}
+        </div>
+    );
 }
 
 export default ChatRoom;
