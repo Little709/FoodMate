@@ -1,14 +1,16 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime, Float, UniqueConstraint
 from datetime import datetime as dt
 import datetime
 from sqlalchemy.orm import relationship
 from utils.database import Base
 from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.dialects.postgresql import UUID
+import uuid
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
 
@@ -43,12 +45,13 @@ class UserRecipeRating(Base):
     __tablename__ = "user_recipe_ratings"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    recipe_id = Column(Integer, ForeignKey('recipes.id'), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)  # Changed to UUID
+    recipe_id = Column(Integer, ForeignKey('recipes.id', ondelete='CASCADE'), nullable=False)
     rating = Column(Integer, nullable=False)  # 1 to 5 star rating
 
     user = relationship("User", backref="recipe_ratings")
     recipe = relationship("Recipe", backref="user_ratings")
+
 
 
 class BlacklistedToken(Base):
@@ -57,3 +60,16 @@ class BlacklistedToken(Base):
     id = Column(Integer, primary_key=True, index=True)
     token = Column(String, unique=True, index=True, nullable=False)
     revoked_at = Column(DateTime, default=dt.now(datetime.timezone.utc), nullable=False)
+
+class ChatsMetadata(Base):
+    __tablename__ = "chats_metadata"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    display_name = Column(String, default='')
+    participants = Column(JSON, nullable=False)  # JSON list of user IDs
+    creation_date = Column(DateTime, default=dt.utcnow, nullable=False)
+    last_activity = Column(DateTime, default=dt.utcnow, onupdate=dt.utcnow, nullable=False)
+
+    def user_is_participant(self, user_id):
+        """Check if a user is a participant in the chat."""
+        return str(user_id) in self.participants

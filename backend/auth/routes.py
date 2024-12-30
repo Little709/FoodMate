@@ -5,8 +5,6 @@ from passlib.context import CryptContext
 from utils.database import SessionLocal
 from utils import models, schemas, authutils
 from pydantic import BaseModel
-from typing import Optional
-from fastapi.security import OAuth2PasswordRequestForm
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 router = APIRouter(

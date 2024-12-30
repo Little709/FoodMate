@@ -1,8 +1,8 @@
 from pydantic import BaseModel, Field, validator
 from typing import List, Optional
 from enum import Enum
-import re
-
+from uuid import UUID
+from datetime import datetime
 # Enums
 class SexEnum(str, Enum):
     male = "Male"
@@ -63,7 +63,7 @@ class UserRead(UserBase):
     personal_story: Optional[str] = ""
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class UserUpdate(BaseModel):
     age: Optional[int]
@@ -104,8 +104,26 @@ class RecipeRead(RecipeBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class RecipeRating(BaseModel):
     recipe_id: int
     rating: int = Field(..., ge=1, le=5)  # 1 to 5 star rating
+
+class CreateChatSchema(BaseModel):
+    participants: List[int]
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "participants": [1, 2, 3]
+            }
+        }
+
+class ChatSummary(BaseModel):
+    id: UUID
+    display_name: str
+    last_activity: datetime
+
+    class Config:
+        from_attributes = True

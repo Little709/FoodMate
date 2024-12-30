@@ -6,11 +6,11 @@ import os
 from dotenv import load_dotenv
 
 # Load .env file from two folders up
-env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env")
+env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), ".env")
 load_dotenv(env_path)
 
 # Retrieve database credentials from the .env file
-DATABASE_NAME = os.getenv("DATABASE_NAME")
+DATABASE_NAME = "chats"
 DATABASE_USER = os.getenv("DATABASE_USER")
 DATABASE_PORT = os.getenv("DATABASE_PORT")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")

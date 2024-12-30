@@ -4,3 +4,4 @@
 *.db
 frontend.zip
 .idea
+.env

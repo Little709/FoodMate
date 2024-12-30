@@ -3,7 +3,6 @@ from sys import prefix
 import uvicorn
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordBearer
 from auth.routes import router as auth_router  # Absolute import
 from chat.routes import router as chat_router
 from management.routes import router as account_router
@@ -13,9 +12,8 @@ from utils.authutils import get_current_user
 
 import os
 
-API_IP = os.getenv("API_IP", "127.0.0.1")
-API_PORT = os.getenv("API_PORT", "8082")
-
+API_IP = os.getenv("API_IP")
+API_PORT = os.getenv("API_PORT")
 
 def create_app() -> FastAPI:
     app = FastAPI(title="FoodMate")
