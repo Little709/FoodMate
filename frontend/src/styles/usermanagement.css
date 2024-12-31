@@ -1,0 +1,157 @@
+/* Center the entire page content */
+.usermanagement-container {
+  max-width: 600px;
+  margin: auto;
+  margin-bottom: 30px;
+
+  padding: 20px;
+  background: var(--background-color);
+  border-radius: 10px;
+  box-shadow: 0 4px 10px var(--shadow-color, rgba(0, 0, 0, 0.1));
+}
+
+/* Title styling */
+.usermanagement-container h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  color: var(--primary-color);
+}
+
+.usermanagement-container h2 {
+  text-align: left;
+  margin-top: 20px;
+  font-size: 1rem;
+  color: var(--primary-color);
+}
+
+/* Error message */
+.error-message {
+  color: var(--error-color);
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Input field styling */
+.input-field {
+  width: 100%;
+  margin-bottom: 15px;
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 5px;
+  box-shadow: inset 0 1px 3px var(--shadow-color, rgba(0, 0, 0, 0.1));
+}
+
+.input-field:focus {
+  border-color: var(--accent-color);
+  outline: none;
+  box-shadow: 0 0 5px var(--focus-shadow, rgba(0, 123, 255, 0.5));
+}
+
+/* Button styling */
+.button {
+  background-color: var(--primary-color);
+  color: var(--text-color, white);
+  border: none;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.button:hover {
+  background-color: var(--accent-color);
+}
+
+/* Form alignment */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Select field styling */
+select.input-field {
+  appearance: none;
+  background-color: var(--input-bg-color, #f9f9f9);
+  padding: 12px;
+  cursor: pointer;
+}
+
+/* Add a subtle hover effect */
+.input-field:hover {
+  border-color: var(--primary-color);
+}
+.input-with-button {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between the input and button */
+}
+
+.inline-button {
+  padding: 0;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px; /* Fixed width for consistency */
+  height: 32px; /* Fixed height for consistency */
+  transition: background-color 0.3s;
+}
+
+.inline-button.remove-button {
+  background-color: var(--error-color);
+  color: var(--text-color, white);
+}
+
+.inline-button.remove-button:hover {
+  background-color: var(--remove-button-hover, darkred);
+}
+
+.inline-button.add-button {
+  background-color: var(--primary-color);
+  color: var(--text-color, white);
+}
+
+.inline-button.add-button:hover {
+  background-color: var(--add-button-hover, darkgreen);
+}
+.input-with-unit {
+  position: relative;
+  display: inline-block;
+}
+
+.input-with-unit .input-field {
+  padding-right: 30px; /* Leave space for the unit */
+}
+
+.input-with-unit .unit {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--unit-text-color, #aaa); /* Style for the unit text */
+  pointer-events: none; /* Ensure the unit is not interactive */
+}
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Space between input and unit */
+}
+
+.input-with-unit {
+  width: calc(100% - 40px); /* Adjust width to make space for unit */
+}
+
+.unit-inline {
+  font-size: 14px;
+  color: var(--unit-inline-color, #555); /* Slightly muted color for the unit */
+}

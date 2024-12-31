@@ -1,0 +1,62 @@
+/* React Toastify Base Styles */
+.Toastify__toast-container {
+  width: auto;
+  max-width: 400px;
+  padding: 8px;
+}
+
+.Toastify__toast {
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--toast-text-color);
+}
+
+.Toastify__toast--success {
+  background-color: var(--toast-success-bg) !important;
+}
+
+.Toastify__toast--error {
+  background-color: var(--toast-error-bg) !important;
+}
+
+.Toastify__toast--info {
+  background-color: var(--toast-info-bg) !important;
+}
+
+.Toastify__toast--warning {
+  background-color: var(--toast-warning-bg) !important;
+}
+
+.Toastify__close-button {
+  color: var(--toast-text-color);
+}
+
+.Toastify__progress-bar {
+  background-color: var(--accent-color);
+}
+
+.Toastify__progress-bar--success {
+  background-color: var(--toast-success-bg);
+}
+
+.Toastify__progress-bar--error {
+  background-color: var(--toast-error-bg);
+}
+
+.Toastify__progress-bar--info {
+  background-color: var(--toast-info-bg);
+}
+
+.Toastify__progress-bar--warning {
+  background-color: var(--toast-warning-bg);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .Toastify__toast-container {
+    padding: 4px;
+  }
+}

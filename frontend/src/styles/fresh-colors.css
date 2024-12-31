@@ -1,0 +1,28 @@
+/* Base Variables (Light Mode) */
+:root {
+  --primary-color: #61c791; /* Fresh Green */
+  --secondary-color: #e6ffe9; /* Light Mint */
+  --text-color: #333333; /* Dark Grey */
+  --accent-color: #ffad42; /* Bright Orange */
+  --error-color: #ff4d4f; /* Red for errors */
+  --background-color: white; /* Default background */
+  --user-background-color: #f4f4f4; /* Light grey background */
+
+  /* Input Field Colors */
+  --input-bg-color: #ffffff; /* Input background */
+  --border-color: #cccccc; /* Input border */
+
+  /* Toastify Colors */
+  --toast-success-bg: #61c791; /* Matches Fresh Green */
+  --toast-error-bg: #ff4d4f; /* Matches Error Red */
+  --toast-info-bg: #3498db; /* Blue for information */
+  --toast-warning-bg: #f39c12; /* Yellow for warnings */
+  --toast-text-color: white; /* White text for contrast */
+
+  /* Dropdown Variables */
+  --dropdown-bg-color: var(--background-color); /* Dropdown background */
+  --dropdown-text-color: var(--text-color); /* Dropdown text */
+  --dropdown-border-color: #cccccc; /* Dropdown border */
+  --dropdown-hover-bg: #f9f9f9; /* Hover background */
+  --dropdown-arrow-color: #aaa; /* Arrow color */
+}

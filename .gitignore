@@ -1,0 +1,7 @@
+/frontend/node_modules
+/.venv
+/node_modules
+*.db
+frontend.zip
+.idea
+.env

@@ -1,0 +1,280 @@
+/* Chat container layout */
+.chat-container {
+    display: flex;
+    height: 95vh;
+    background-color: var(--background-color);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Sidebar styles */
+.sidebar {
+    width: 250px;
+    background-color: var(--secondary-color);
+    color: var(--toast-text-color);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sidebar .button {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar .button:hover {
+    background-color: var(--hover-primary-color);
+}
+
+.sidebar h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    text-align: center;
+    font-weight: bold;
+}
+
+.sidebar .chat-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+}
+
+.sidebar .chat-list li {
+    padding: 10px;
+    cursor: pointer;
+    background-color: var(--input-bg-color);
+    border-radius: 5px;
+    margin-bottom: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar .chat-list li:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Chat main area styles */
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background-color: var(--background-color);
+}
+
+/* Chat title */
+.chat-title {
+    margin: 0 0 10px 0;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    text-align: center;
+}
+
+/* Messages container */
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  overflow-y: auto;
+  flex: 1;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background-color: var(--input-bg-color);
+}
+
+
+.message {
+  word-wrap: break-word; /* Ensure words break to fit within the container */
+  word-break: break-word; /* Break long words to avoid overflow */
+  overflow-wrap: break-word; /* For modern browsers */
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: var(--secondary-color);
+  color: var(--background-color);
+  max-width: 80%; /* Adjust message width relative to the chat container */
+}
+
+.message.sent {
+  align-self: flex-end;
+  background-color: var(--primary-color);
+  color: #2e2e2e
+  border-radius: 10px 10px 10px 0;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+
+.message.received {
+  align-self: flex-start;
+  background-color: var(--accent-color);
+  color: #2e2e2e;
+  border-radius: 10px 10px 0 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.input-field {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 1rem;
+    background-color: var(--input-bg-color);
+    color: var(--text-color);
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.input-field:focus {
+    border-color: var(--primary-color);
+}
+
+.send-button {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.send-button:hover {
+    background-color: var(--hover-primary-color);
+}
+
+/* Scrollbar customization */
+.messages::-webkit-scrollbar,
+.sidebar .chat-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.messages::-webkit-scrollbar-thumb,
+.sidebar .chat-list::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-color);
+    border-radius: 10px;
+}
+
+.messages::-webkit-scrollbar-thumb:hover,
+.sidebar .chat-list::-webkit-scrollbar-thumb:hover {
+    background-color: var(--hover-scrollbar-color);
+}
+
+.chat-title-container {
+    position: relative;
+    padding: 5px;
+}
+
+.edit-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--user-background-color); /* Background consistent with user area */
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.edit-title input {
+    font-size: 1.5em; /* Match the title font size */
+    font-weight: bold;
+    padding: 4px 8px;
+    width: 100%; /* Make the input full width */
+    border: 1px solid var(--border-color);
+    background-color: var(--input-bg-color);
+    color: var(--text-color); /* Use theme text color */
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: subtle shadow */
+}
+
+.edit-title input:focus {
+    border-color: var(--primary-color); /* Highlight border with primary color */
+    outline: none;
+    box-shadow: 0 0 5px var(--primary-color); /* Glow effect */
+}
+
+.save-button {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.save-button:hover {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.input-area {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--user-background-color); /* Match the user area background */
+    border-top: 1px solid var(--border-color); /* Separator line */
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+.input-area input {
+    flex: 1; /* Expand input to fill available space */
+    font-size: 1em;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: var(--input-bg-color);
+    color: var(--text-color); /* Match text color */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2); /* Subtle inner shadow */
+}
+
+.input-area input:focus {
+    outline: none;
+    border-color: var(--primary-color); /* Highlight border with primary color */
+    box-shadow: 0 0 5px var(--primary-color); /* Glow effect */
+}
+
+.input-area button {
+    margin-left: 10px;
+    padding: 10px 15px;
+    font-size: 1em;
+    font-weight: bold;
+    color: var(--text-color);
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+}
+
+.input-area button:hover {
+    background-color: var(--accent-color); /* Highlight button on hover */
+    color: white; /* Ensure good contrast */
+}
+
+.sidebar .chat-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar .chat-list li .timestamp {
+    font-size: 0.9em;
+    color: var(--text-muted-color);
+    margin-left: auto;
+}
