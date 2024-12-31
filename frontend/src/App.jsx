@@ -31,17 +31,48 @@ const AuthMiddleware = ({ isLoggedIn, children }) => {
 function AppContent({ isLoggedIn, setIsLoggedIn, notifySuccess, notifyError }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+  const toggleDarkMode = () => {
+    setIsDarkMode((prevMode) => !prevMode);
+  };
+
   useEffect(() => {
+    // Retrieve the saved mode from localStorage and apply it on mount
+    const savedMode = localStorage.getItem('darkMode') === 'true';
+    setIsDarkMode(savedMode);
+
     const root = document.documentElement;
-    if (!isDarkMode) {
+    if (savedMode) {
       root.classList.add('dark-mode');
+      root.classList.remove('light-mode');
     } else {
+      root.classList.add('light-mode');
+      root.classList.remove('dark-mode');
+    }
+  }, []);
+
+  useEffect(() => {
+    // Save the mode to localStorage and apply the appropriate class on change
+    localStorage.setItem('darkMode', isDarkMode);
+
+    const root = document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark-mode');
+      root.classList.remove('light-mode');
+    } else {
+      root.classList.add('light-mode');
       root.classList.remove('dark-mode');
     }
   }, [isDarkMode]);
 
   const location = useLocation();
 
+  const getDefaultPath = () => {
+    const lastVisited = localStorage.getItem('lastVisitedPath');
+    if (lastVisited === '/login') {
+      return '/chat';
+    }
+    return lastVisited || '/chat';
+  };
   useEffect(() => {
     if (isLoggedIn) {
       localStorage.setItem('lastVisitedPath', location.pathname);
@@ -82,6 +113,11 @@ function AppContent({ isLoggedIn, setIsLoggedIn, notifySuccess, notifyError }) {
                   Logout
                 </NavLink>
               </li>
+              <li>
+                <button onClick={toggleDarkMode}>
+                  {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+                </button>
+              </li>
             </ul>
           </nav>
         </header>
@@ -103,7 +139,7 @@ function AppContent({ isLoggedIn, setIsLoggedIn, notifySuccess, notifyError }) {
             <Route path="/logout" element={<Logout setIsLoggedIn={setIsLoggedIn} />} />
             <Route
               path="/"
-              element={<Navigate to={isLoggedIn ? localStorage.getItem('lastVisitedPath') || '/recipes' : '/login'} />}
+              element={<Navigate to={isLoggedIn ? getDefaultPath() : '/login'} />}
             />
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>

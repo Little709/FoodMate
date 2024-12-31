@@ -43,7 +43,7 @@ function Login({ setIsLoggedIn }) {
           localStorage.setItem('token', data.access_token);
           localStorage.setItem('tokenExpiry', new Date(data.expiry).getTime());
           setIsLoggedIn(true);
-          navigate('/recipes');
+          navigate('/chat');
         } else {
           setError('Login failed: Missing token or expiry information.');
         }

@@ -1,7 +1,7 @@
 /* Chat container layout */
 .chat-container {
     display: flex;
-    height: 95vh;
+    height: 80vh;
     background-color: var(--background-color);
     border-radius: 10px;
     overflow: hidden;
