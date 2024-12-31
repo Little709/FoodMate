@@ -22,7 +22,7 @@ function ChatRoom({ notifySuccess, notifyError }) {
         return !messages.some((message) => message.id === newMessage.id);
     };
     const handleChatClick = async (chatId, displayName) => {
-        setSelectedChatId(chatId); // Ensure chatId is set
+        setSelectedChatId(chatId);
         setRoom(displayName || chatId);
         setMessages([]); // Clear current messages
         await fetchMessages(chatId); // Fetch all existing messages
@@ -189,8 +189,17 @@ function ChatRoom({ notifySuccess, notifyError }) {
             });
             if (res.ok) {
                 const chats = await res.json();
-                console.log(chats)
                 setRecentChats(chats);
+                console.log(chats);
+
+                // Automatically open the most recent chat
+                if (chats.length > 0) {
+                    const mostRecentChat = chats[0];
+                    setRoom(mostRecentChat.display_name || mostRecentChat.id);
+                    setSelectedChatId(mostRecentChat.id);
+                    fetchMessages(mostRecentChat.id); // Fetch messages for the most recent chat
+                    connectToWebSocket(mostRecentChat.id); // Connect WebSocket
+                }
             } else {
                 notifyError("Failed to fetch recent chats.");
             }
@@ -198,6 +207,7 @@ function ChatRoom({ notifySuccess, notifyError }) {
             notifyError("An error occurred while fetching recent chats.");
         }
     };
+
 
     const fetchMessages = async (chatId) => {
         const token = localStorage.getItem("token");
@@ -384,7 +394,9 @@ const handleTitleSave = async () => {
                                 <button className="send-button" onClick={handleTitleSave}>Save</button>
                             </div>
                         ) : (
-                            <h2 className="chat-title">{room || "Unknown Room"}</h2>
+                            <h2 className="chat-title">
+                                {room || (recentChats.length > 0 ? "Loading Room..." : "No Chats Available")}
+                            </h2>
                         )}
                     </div>
 

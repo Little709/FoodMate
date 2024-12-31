@@ -6,6 +6,7 @@ function Wizard({ onComplete }) {
   const [currentStep, setCurrentStep] = useState("alone");
   const [wizardData, setWizardData] = useState({});
   const [reuseData, setReuseData] = useState(null);
+  const [history, setHistory] = useState([]); // Add history state
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -50,8 +51,8 @@ function Wizard({ onComplete }) {
       text: "Reusing your previous meal plan...",
       includeInJson: false,
       action: () => {
-         const reuseDataToSend = { reuseMessages: true }; // Explicitly set reuseMessages to true
-         onComplete(reuseDataToSend); // Send only this data
+        const reuseDataToSend = { reuseMessages: true }; // Explicitly set reuseMessages to true
+        onComplete(reuseDataToSend); // Send only this data
       },
     },
     alone: {
@@ -137,9 +138,28 @@ function Wizard({ onComplete }) {
         setWizardData({}); // Reset wizard data
       }
       setWizardData((prev) => ({ ...prev, [currentStep]: value }));
+      setHistory((prevHistory) => [...prevHistory, currentStep]); // Add current step to history
       setCurrentStep(nextStep);
     }
   };
+
+    const handleBackClick = () => {
+        setHistory((prevHistory) => {
+            const updatedHistory = [...prevHistory];
+            const previousStep = updatedHistory.pop(); // Get the last step
+            const lastStep = currentStep; // Save the current step before changing it
+
+            // Remove the current step's data from wizardData
+            setWizardData((prevWizardData) => {
+                const updatedData = { ...prevWizardData };
+                delete updatedData[lastStep]; // Remove the data for the last step
+                return updatedData;
+            });
+
+            setCurrentStep(previousStep || "alone"); // Set to previous step or default to "alone"
+            return updatedHistory; // Update history state
+        });
+    };
 
   return (
     <div className="mealwizard-container">
@@ -169,20 +189,23 @@ function Wizard({ onComplete }) {
                 placeholder={currentStepConfig.placeholder}
                 onBlur={(e) => {
                   const value = e.target.value.trim();
-                  if (/^[a-zA-Z\s]*$/.test(value)) { // Allow only letters and spaces
+                  if (/^[a-zA-Z\s]*$/.test(value)) {
                     setWizardData((prev) => ({
                       ...prev,
                       [currentStep]: value,
                     }));
                   } else {
-                    alert("Please enter only letters and spaces."); // Alert for invalid input
-                    e.target.value = ""; // Clear invalid input
+                    alert("Please enter only letters and spaces.");
+                    e.target.value = "";
                   }
                 }}
               />
               <button
                 className="mealwizard-button"
-                onClick={() => setCurrentStep(currentStepConfig.next)}
+                onClick={() => {
+                  setHistory((prevHistory) => [...prevHistory, currentStep]); // Add to history
+                  setCurrentStep(currentStepConfig.next);
+                }}
               >
                 Next
               </button>
@@ -195,7 +218,7 @@ function Wizard({ onComplete }) {
                 onClick={() =>
                   setWizardData((prev) => ({
                     ...prev,
-                    amountofpeople: Math.max((prev.amountofpeople || 1) - 1, 1), // Minimum 1
+                    amountofpeople: Math.max((prev.amountofpeople || 1) - 1, 1),
                   }))
                 }
               >
@@ -204,7 +227,7 @@ function Wizard({ onComplete }) {
               <input
                 className="mealwizard-input"
                 type="text"
-                value={wizardData.amountofpeople || 1} // Default to 1 if undefined
+                value={wizardData.amountofpeople || 1}
                 readOnly
               />
               <button
@@ -220,11 +243,19 @@ function Wizard({ onComplete }) {
               </button>
               <button
                 className="mealwizard-button"
-                onClick={() => setCurrentStep(currentStepConfig.next)}
+                onClick={() => {
+                  setHistory((prevHistory) => [...prevHistory, currentStep]); // Add to history
+                  setCurrentStep(currentStepConfig.next);
+                }}
               >
                 Next
               </button>
             </div>
+          )}
+          {history.length > 0 && (
+            <button className="mealwizard-back-button" onClick={handleBackClick}>
+              Back
+            </button>
           )}
         </>
       )}

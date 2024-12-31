@@ -72,16 +72,16 @@ function AppContent({ isLoggedIn, setIsLoggedIn, notifySuccess, notifyError }) {
                   Chat
                 </NavLink>
               </li>
-              <li>
-                <NavLink to="/recipes" className={({ isActive }) => (isActive ? 'active' : '')}>
-                  Recipes
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/shopping" className={({ isActive }) => (isActive ? 'active' : '')}>
-                  Shopping List
-                </NavLink>
-              </li>
+{/*               <li> */}
+{/*                 <NavLink to="/recipes" className={({ isActive }) => (isActive ? 'active' : '')}> */}
+{/*                   Recipes */}
+{/*                 </NavLink> */}
+{/*               </li> */}
+{/*               <li> */}
+{/*                 <NavLink to="/shopping" className={({ isActive }) => (isActive ? 'active' : '')}> */}
+{/*                   Shopping List */}
+{/*                 </NavLink> */}
+{/*               </li> */}
               <li>
                 <NavLink to="/usermanagement" className={({ isActive }) => (isActive ? 'active' : '')}>
                   My Account
@@ -106,14 +106,14 @@ function AppContent({ isLoggedIn, setIsLoggedIn, notifySuccess, notifyError }) {
               path="/chat"
               element={<ChatRoom notifySuccess={notifySuccess} notifyError={notifyError} />}
             />
-            <Route
-              path="/recipes"
-              element={<RecipeList notifySuccess={notifySuccess} notifyError={notifyError} />}
-            />
-            <Route
-              path="/shopping"
-              element={<ShoppingList notifySuccess={notifySuccess} notifyError={notifyError} />}
-            />
+{/*             <Route */}
+{/*               path="/recipes" */}
+{/*               element={<RecipeList notifySuccess={notifySuccess} notifyError={notifyError} />} */}
+{/*             /> */}
+{/*             <Route */}
+{/*               path="/shopping" */}
+{/*               element={<ShoppingList notifySuccess={notifySuccess} notifyError={notifyError} />} */}
+{/*             /> */}
             <Route
               path="/usermanagement"
               element={<UserManagementPage notifySuccess={notifySuccess} notifyError={notifyError} />}
