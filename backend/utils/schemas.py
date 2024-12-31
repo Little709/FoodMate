@@ -89,6 +89,7 @@ class Token(BaseModel):
     token_type: str
     user_id: UUID
     username: str
+    expiry: datetime
 
 class Message(BaseModel):
     message: str

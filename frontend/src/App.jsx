@@ -72,16 +72,6 @@ function AppContent({ isLoggedIn, setIsLoggedIn, notifySuccess, notifyError }) {
                   Chat
                 </NavLink>
               </li>
-{/*               <li> */}
-{/*                 <NavLink to="/recipes" className={({ isActive }) => (isActive ? 'active' : '')}> */}
-{/*                   Recipes */}
-{/*                 </NavLink> */}
-{/*               </li> */}
-{/*               <li> */}
-{/*                 <NavLink to="/shopping" className={({ isActive }) => (isActive ? 'active' : '')}> */}
-{/*                   Shopping List */}
-{/*                 </NavLink> */}
-{/*               </li> */}
               <li>
                 <NavLink to="/usermanagement" className={({ isActive }) => (isActive ? 'active' : '')}>
                   My Account
@@ -106,14 +96,6 @@ function AppContent({ isLoggedIn, setIsLoggedIn, notifySuccess, notifyError }) {
               path="/chat"
               element={<ChatRoom notifySuccess={notifySuccess} notifyError={notifyError} />}
             />
-{/*             <Route */}
-{/*               path="/recipes" */}
-{/*               element={<RecipeList notifySuccess={notifySuccess} notifyError={notifyError} />} */}
-{/*             /> */}
-{/*             <Route */}
-{/*               path="/shopping" */}
-{/*               element={<ShoppingList notifySuccess={notifySuccess} notifyError={notifyError} />} */}
-{/*             /> */}
             <Route
               path="/usermanagement"
               element={<UserManagementPage notifySuccess={notifySuccess} notifyError={notifyError} />}
@@ -135,16 +117,51 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Function to check if token is valid
+  const isTokenValid = () => {
+    const expiry = localStorage.getItem('tokenExpiry');
+    return expiry && Date.now() < parseInt(expiry, 10);
+  };
+
   useEffect(() => {
+    // Check token validity on load
     const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
+    if (token && isTokenValid()) {
+      setIsLoggedIn(true);
+    } else {
+      localStorage.removeItem('token');
+      localStorage.removeItem('tokenExpiry');
+      setIsLoggedIn(false);
+    }
     setLoading(false);
   }, []);
 
   useEffect(() => {
+    // Set a timeout to log out the user when the token expires
+    const expiry = localStorage.getItem('tokenExpiry');
+    if (expiry) {
+      const timeUntilExpiry = parseInt(expiry, 10) - Date.now();
+      if (timeUntilExpiry > 0) {
+        const timer = setTimeout(() => {
+          localStorage.removeItem('token');
+          localStorage.removeItem('tokenExpiry');
+          setIsLoggedIn(false);
+          window.location.href = '/login';
+        }, timeUntilExpiry);
+
+        return () => clearTimeout(timer); // Clear timeout on unmount
+      }
+    }
+  }, [isLoggedIn]);
+
+  useEffect(() => {
     const handleStorageChange = () => {
       const token = localStorage.getItem('token');
-      setIsLoggedIn(!!token);
+      if (token && isTokenValid()) {
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
+      }
     };
 
     window.addEventListener('storage', handleStorageChange);

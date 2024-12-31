@@ -32,36 +32,38 @@ function Login({ setIsLoggedIn }) { // Include setIsLoggedIn prop
     }, [location, navigate]);
 
 
-  const handleLogin = async () => {
-    setError(null); // Reset error before each attempt
-    setIsIncorrectPassword(false); // Reset incorrect password state
+    const handleLogin = async () => {
+      setError(null); // Reset error before each attempt
+      setIsIncorrectPassword(false); // Reset incorrect password state
 
-    try {
-      const res = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await res.json();
+      try {
+        const res = await fetch(`${API_BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await res.json();
 
-      if (res.ok) {
-        if (data.access_token) {
-          localStorage.setItem('token', data.access_token); // Save the token
-          setIsLoggedIn(true); // Update the login state
-          navigate('/recipes'); // Redirect to /recipes
+        if (res.ok) {
+          if (data.access_token && data.expiry) {
+            localStorage.setItem('token', data.access_token); // Save the token
+            localStorage.setItem('tokenExpiry', new Date(data.expiry).getTime()); // Save the token expiry
+            setIsLoggedIn(true); // Update the login state
+            navigate('/recipes'); // Redirect to /recipes
+          } else {
+            setError('Login failed: Missing token or expiry information.');
+          }
+        } else if (data.detail === 'Incorrect credentials') {
+          setIsIncorrectPassword(true); // Show incorrect password message
         } else {
-          setError('Login failed: No token received.');
+          setError(data.detail || 'Login failed.');
         }
-      } else if (data.detail === 'Incorrect credentials') {
-        setIsIncorrectPassword(true); // Show incorrect password message
-      } else {
-        setError(data.detail || 'Login failed.');
+      } catch (err) {
+        console.error('Error during login:', err);
+        setError('Login failed: Something went wrong.');
       }
-    } catch (err) {
-      console.error('Error during login:', err);
-      setError('Login failed: Something went wrong.');
-    }
-  };
+    };
+
 
   const handleRegisterRedirect = () => {
     // Pass username and password to the Register page

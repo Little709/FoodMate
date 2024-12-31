@@ -69,13 +69,14 @@ def login_user(login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
     # Generate JWT token
-    access_token = authutils.create_access_token(data={"sub": db_user.username})
+    access_token, expire = authutils.create_access_token(data={"sub": db_user.username})
 
     # Return the user data along with the generated token
     return schemas.Token(
         access_token=access_token,
         token_type="bearer",
         user_id=db_user.id,
-        username=db_user.username
+        username=db_user.username,
+        expiry=expire
     )
 
