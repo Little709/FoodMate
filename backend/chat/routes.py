@@ -4,6 +4,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPExce
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import inspect, select
+from starlette.config import undefined
 from utils.schemas import UserRead, CreateChatSchema, ChatSummary,ChatResponseSchema, UpdateChatMetadata
 from utils.database import SessionLocal as GeneralSession
 from utils.models import User, ChatsMetadata
@@ -90,6 +91,7 @@ async def chat_endpoint(websocket: WebSocket):
 
     try:
         chat_db = next(get_chat_db())
+
     except Exception as e:
         await websocket.close(code=1008)
         logger.error(f"Failed to initialize chat database: {e}")
@@ -131,52 +133,27 @@ async def chat_endpoint(websocket: WebSocket):
 
 
     except WebSocketDisconnect:
+        chat_db.close()
         manager.disconnect(websocket, room)
     except Exception as e:
         logger.error(f"Unexpected WebSocket error: {e}")
 
-
-
-@router.get("/user/{user_id}/dietary-info", response_model=UserRead)
-def get_user_dietary_info(user_id: int, db: Session = Depends(get_general_db)):
-    # Fetch user details from the general database
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # Return user data as JSON
-    return {
-        "id": user.id,
-        "username": user.username,
-        "age": user.age,
-        "sex": user.sex,
-        "weight": user.weight,
-        "height": user.height,
-        "activity_level": user.activity_level,
-        "goal": user.goal,
-        "preferred_cuisines": user.preferred_cuisines,
-        "disliked_ingredients": user.disliked_ingredients,
-        "liked_ingredients": user.liked_ingredients,
-        "allergies": user.allergies,
-        "meal_timing": user.meal_timing,
-        "portion_size": user.portion_size,
-        "snack_preference": user.snack_preference,
-        "dietary_preference": user.dietary_preference,
-        "personal_story": user.personal_story,
-    }
-
-
 @router.post("/new", response_model=ChatResponseSchema)
 def create_chat(
+    data: dict,
     db: Session = Depends(get_general_db),
-chat_db: Session = Depends(get_chat_db),
-    current_user=Depends(get_current_user)
+    chat_db: Session = Depends(get_chat_db),
+    current_user=Depends(get_current_user),
+    display_name: str = None,
+
 ):
+    print(data)
     """
     Create a new chat with the authenticated user as the sole participant.
     """
     try:
-        display_name = f"Chat_{dt.utcnow()}"
+        if(display_name == None or display_name == "undefined"):
+            display_name = f"Chat_{dt.utcnow()}"
         # Use only the current user ID as the participant
         new_chat = ChatsMetadata(
             participants=[str(current_user.id)],  # List containing only the current user ID

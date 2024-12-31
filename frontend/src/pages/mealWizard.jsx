@@ -3,7 +3,7 @@ import "../styles/mealwizard.css";
 import { API_BASE_URL } from "../config";
 
 function Wizard({ onComplete }) {
-  const [currentStep, setCurrentStep] = useState("reuseMessages");
+  const [currentStep, setCurrentStep] = useState("alone");
   const [wizardData, setWizardData] = useState({});
   const [reuseData, setReuseData] = useState(null);
 

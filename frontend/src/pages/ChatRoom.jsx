@@ -4,6 +4,7 @@ import Wizard from './mealWizard';
 import '../styles/chatroom.css';
 
 function ChatRoom({ notifySuccess, notifyError }) {
+    const [isWizardOpen, setIsWizardOpen] = useState(false);
     const messagesEndRef = useRef(null);
     const [room, setRoom] = useState('');
     const [messages, setMessages] = useState([]);
@@ -219,23 +220,50 @@ function ChatRoom({ notifySuccess, notifyError }) {
             notifyError("An error occurred while fetching messages.");
         }
     };
+    const startNewChat = () => {
+        setIsWizardOpen(true);
+    };
 
-    const startNewChat = async () => {
+    const handleWizardComplete = (wizardData) => {
+        setIsWizardOpen(false);
+        // Use wizardData to customize the new chat
+        // Example: Send wizardData to the server or log it
+        console.log("Wizard completed with data:", wizardData);
+        // Start the chat
+        startNewChatLogic(wizardData);
+    };
+
+    const startNewChatLogic = async (wizardData) => {
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`${API_BASE_URL}/chat/new`, {
+            const parse = await fetch(`${API_BASE_URL}/management/account`, {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                }
+            });
+            const user = await parse.json(); // Parse the response body as JSON
+            const data = {
+                ...wizardData,
+                ...user,
+            };
+            const displayName = wizardData.cravingfor;
+            const res = await fetch(`${API_BASE_URL}/chat/new?display_name=${displayName}`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
                 },
+                body: JSON.stringify(data), // Include the data in the body
             });
+
             if (res.ok) {
                 const chat = await res.json();
-                setRoom(chat.display_name || chat.id); // Use display_name or fallback to id for user
+                setRoom(chat.display_name || chat.id);
                 setMessages([]);
-                setRecentChats((prevChats) => [...prevChats, chat]); // Add to recent chats
-                connectToWebSocket(chat.id); // Use id for backend operations
+                setRecentChats((prevChats) => [ chat, ...prevChats]);
+                connectToWebSocket(chat.id);
                 notifySuccess("New chat started!");
             } else {
                 notifyError("Failed to start a new chat.");
@@ -244,6 +272,7 @@ function ChatRoom({ notifySuccess, notifyError }) {
             notifyError("An error occurred while starting a new chat.");
         }
     };
+
 
     const sendMessage = () => {
         if (!message.trim()) return;
@@ -313,92 +342,99 @@ const handleTitleSave = async () => {
 
 
     return (
-        <div className="chat-container">
-            <div className="sidebar">
-                <button className="button" onClick={startNewChat}>
-                    New Chat
-                </button>
-                <h3>Recent Chats</h3>
-                <ul className="chat-list">
-                    {recentChats.map((chat) => (
-                        <li
-                            key={chat.id}
-                            onClick={() => handleChatClick(chat.id, chat.display_name || chat.id)}
-                            onContextMenu={(e) => handleContextMenu(e, chat.id)} // Context menu event
-                        >
-                            <span>{chat.display_name || chat.id}</span>
-                            <span className="timestamp">
-{/*                                 {chat.last_activity ? formatTimestamp(chat.last_activity) : 'No activity'} */}
-                            </span>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-            <main className="chat-main">
-                <div
-                    className="chat-title-container"
-                    onMouseEnter={() => setIsEditingTitle(true)}
-                    onMouseLeave={() => setIsEditingTitle(false)}
-                >
-                    {isEditingTitle ? (
-                        <div className="edit-title">
-                            <input
-                                type="text"
-                                value={editedTitle || room}
-                                onChange={(e) => setEditedTitle(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && handleTitleSave()}
-                            />
-                            <button className="send-button" onClick={handleTitleSave}>Save</button>
-                        </div>
-                    ) : (
-                        <h2 className="chat-title">{room || "Unknown Room"}</h2>
-                    )}
-                </div>
-
-                <div className="messages">
-                    {messages.map((m, index) => (
-                        <div
-                            key={m.id || index}
-                            className={`message ${m.type === "received" ? "received" : "sent"}`}
-                        >
-                            {m.type === "received" ? (
-                                <span>
-                                    <strong>{m.user_id}:</strong> {m.message}
+    <div className="chat-container">
+        {isWizardOpen ? (
+            <Wizard onComplete={handleWizardComplete} />
+        ) : (
+            <>
+                <div className="sidebar">
+                    <button className="button" onClick={startNewChat}>
+                        New Chat
+                    </button>
+                    <h3>Recent Chats</h3>
+                    <ul className="chat-list">
+                        {recentChats.map((chat) => (
+                            <li
+                                key={chat.id}
+                                onClick={() => handleChatClick(chat.id, chat.display_name || chat.id)}
+                                onContextMenu={(e) => handleContextMenu(e, chat.id)} // Context menu event
+                            >
+                                <span>{chat.display_name || chat.id}</span>
+                                <span className="timestamp">
+                                    {/* {chat.last_activity ? formatTimestamp(chat.last_activity) : 'No activity'} */}
                                 </span>
-                            ) : (
-                                <span>{m.message}</span>
-                            )}
-                        </div>
-                    ))}
-                    <div ref={messagesEndRef} />
+                            </li>
+                        ))}
+                    </ul>
                 </div>
+                <main className="chat-main">
+                    <div
+                        className="chat-title-container"
+                        onMouseEnter={() => setIsEditingTitle(true)}
+                        onMouseLeave={() => setIsEditingTitle(false)}
+                    >
+                        {isEditingTitle ? (
+                            <div className="edit-title">
+                                <input
+                                    type="text"
+                                    value={editedTitle || room}
+                                    onChange={(e) => setEditedTitle(e.target.value)}
+                                    onKeyDown={(e) => e.key === "Enter" && handleTitleSave()}
+                                />
+                                <button className="send-button" onClick={handleTitleSave}>Save</button>
+                            </div>
+                        ) : (
+                            <h2 className="chat-title">{room || "Unknown Room"}</h2>
+                        )}
+                    </div>
 
-                <div className="input-area">
-                    <input
-                        placeholder="Type message..."
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                    />
-                    <button onClick={sendMessage}>Send</button>
-                </div>
-            </main>
-            {/* Context Menu */}
-            {contextMenuVisible && (
-                <div
-                    className="context-menu"
-                    style={{
-                        position: "absolute",
-                        top: contextMenuPosition.y,
-                        left: contextMenuPosition.x,
-                    }}
-                    onClick={closeContextMenu}
-                >
-                    <button onClick={handleDeleteChat}>Delete Chat</button>
-                </div>
-            )}
-        </div>
-    );
+                    <div className="messages">
+                        {messages.map((m, index) => (
+                            <div
+                                key={m.id || index}
+                                className={`message ${m.type === "received" ? "received" : "sent"}`}
+                            >
+                                {m.type === "received" ? (
+                                    <span>
+                                        <strong>{m.user_id}:</strong> {m.message}
+                                    </span>
+                                ) : (
+                                    <span>{m.message}</span>
+                                )}
+                            </div>
+                        ))}
+                        <div ref={messagesEndRef} />
+                    </div>
+
+                    <div className="input-area">
+                        <input
+                            placeholder="Type message..."
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                        />
+                        <button onClick={sendMessage}>Send</button>
+                    </div>
+                </main>
+                {/* Context Menu */}
+                {contextMenuVisible && (
+                    <div
+                        className="context-menu"
+                        style={{
+                            position: "absolute",
+                            top: contextMenuPosition.y,
+                            left: contextMenuPosition.x,
+                        }}
+                        onClick={closeContextMenu}
+                    >
+                        <button onClick={handleDeleteChat}>Delete Chat</button>
+                    </div>
+                )}
+            </>
+        )}
+    </div>
+);
+
 }
 
 export default ChatRoom;
