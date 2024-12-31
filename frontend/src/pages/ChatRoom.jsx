@@ -378,56 +378,73 @@ const handleTitleSave = async () => {
                     </ul>
                 </div>
                 <main className="chat-main">
-                    <div
-                        className="chat-title-container"
-                        onMouseEnter={() => setIsEditingTitle(true)}
-                        onMouseLeave={() => setIsEditingTitle(false)}
-                    >
-                        {isEditingTitle ? (
-                            <div className="edit-title">
-                                <input
-                                    type="text"
-                                    value={editedTitle || room}
-                                    onChange={(e) => setEditedTitle(e.target.value)}
-                                    onKeyDown={(e) => e.key === "Enter" && handleTitleSave()}
-                                />
-                                <button className="send-button" onClick={handleTitleSave}>Save</button>
-                            </div>
-                        ) : (
-                            <h2 className="chat-title">
-                                {room || (recentChats.length > 0 ? "Loading Room..." : "No Chats Available")}
-                            </h2>
-                        )}
-                    </div>
-
-                    <div className="messages">
-                        {messages.map((m, index) => (
+                    {room && room !== "No Chats Available" ? (
+                        <>
                             <div
-                                key={m.id || index}
-                                className={`message ${m.type === "received" ? "received" : "sent"}`}
+                                className="chat-title-container"
+                                onMouseEnter={() => setIsEditingTitle(true)}
+                                onMouseLeave={() => setIsEditingTitle(false)}
                             >
-                                {m.type === "received" ? (
-                                    <span>
-                                        <strong>{m.user_id}:</strong> {m.message}
-                                    </span>
+                                {isEditingTitle ? (
+                                    <div className="edit-title">
+                                        <input
+                                            type="text"
+                                            value={editedTitle || room}
+                                            onChange={(e) => setEditedTitle(e.target.value)}
+                                            onKeyDown={(e) => e.key === "Enter" && handleTitleSave()}
+                                            disabled={!room || room === "No Chats Available"}
+                                        />
+                                        <button
+                                            className="send-button"
+                                            onClick={handleTitleSave}
+                                            disabled={!room || room === "No Chats Available"}
+                                        >
+                                            Save
+                                        </button>
+                                    </div>
                                 ) : (
-                                    <span>{m.message}</span>
+                                    <h2 className="chat-title">
+                                        {room || (recentChats.length > 0 ? "Loading Room..." : "No Chats Available")}
+                                    </h2>
                                 )}
                             </div>
-                        ))}
-                        <div ref={messagesEndRef} />
-                    </div>
 
-                    <div className="input-area">
-                        <input
-                            placeholder="Type message..."
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                        />
-                        <button onClick={sendMessage}>Send</button>
-                    </div>
+                            <div className="messages">
+                                {messages.map((m, index) => (
+                                    <div
+                                        key={m.id || index}
+                                        className={`message ${m.type === "received" ? "received" : "sent"}`}
+                                    >
+                                        {m.type === "received" ? (
+                                            <span>
+                                                <strong>{m.user_id}:</strong> {m.message}
+                                            </span>
+                                        ) : (
+                                            <span>{m.message}</span>
+                                        )}
+                                    </div>
+                                ))}
+                                <div ref={messagesEndRef} />
+                            </div>
+
+                            <div className="input-area">
+                                <input
+                                    placeholder="Type message..."
+                                    value={message}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                    onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                                    disabled={!room || room === "No Chats Available"}
+                                />
+                                <button onClick={sendMessage} disabled={!room || room === "No Chats Available"}>
+                                    Send
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <h2 className="chat-title">No Chats Available</h2>
+                    )}
                 </main>
+
                 {/* Context Menu */}
                 {contextMenuVisible && (
                     <div
