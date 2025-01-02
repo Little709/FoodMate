@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from utils.database import general_session
+from utils.database import general_session, Base, general_engine
 from utils.authutils import get_current_user  # Assuming this function decodes and verifies JWT
 from utils import models, schemas
+import logging
 
 router = APIRouter()
 
@@ -12,6 +13,14 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+logger = logging.getLogger("uvicorn")
+
+Base.metadata.create_all(bind=general_engine)
+logger.info(f"Tables in metadata: {Base.metadata.tables.keys()}")
+logger.info("Recipe tables created successfully.")
+
 
 # Protect routes by requiring authentication
 @router.post("/create", response_model=schemas.RecipeRead)

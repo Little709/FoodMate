@@ -8,23 +8,24 @@ from utils.schemas import (UserRead, CreateChatSchema, ChatSummary,ChatResponseS
 from utils.models import User, ChatsMetadata,ChatRoomManager, create_chat_model
 from utils.database import Base, notification_manager, chat_session, general_session
 from utils.authutils import verify_token, get_current_user
-from utils.openai import process_openai_tasks
+from utils.openai import process_openai_tasks, llm_model,instructions
 from typing import List
 from uuid import UUID
 from datetime import datetime as dt
 from openai import OpenAI
+import openai
 import uuid
 import json
 import logging
 import os
 
+# Set up logging
+logger = logging.getLogger("uvicorn")
+openai.log = logger
+
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=OPENAI_API_KEY)
 router = APIRouter()
-
-# Set up logging
-logger = logging.getLogger("uvicorn")
-
 
 def generate_room_id():
     return uuid.uuid4().hex
@@ -175,9 +176,8 @@ def create_chat(
 
         assistant = client.beta.assistants.create(
             name=thread_name,
-            instructions="You are a master dietitian",
             tools=[],
-            model="gpt-3.5-turbo-0125",
+            model=llm_model,
         )
         thread = client.beta.threads.create()
 

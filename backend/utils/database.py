@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+# from utils.models import Recipe, Ingredient, InstructionStep, UserRecipeRating
 import os
 import sql
 import psycopg2
@@ -55,8 +56,8 @@ recipe_db_config = {
 }
 
 recipe_db_url = (
-    f"postgresql://{chat_db_config['user']}:{chat_db_config['password']}"
-    f"@{chat_db_config['host']}:{chat_db_config['port']}/{chat_db_config['name']}"
+    f"postgresql://{recipe_db_config['user']}:{recipe_db_config['password']}"
+    f"@{recipe_db_config['host']}:{recipe_db_config['port']}/{recipe_db_config['name']}"
 )
 
 # Base for models
@@ -89,6 +90,8 @@ def ensure_database_exists(db_config):
         else:
             logger.info(f"Database '{db_config['name']}' already exists.")
 
+
+
         cursor.close()
         conn.close()
     except Exception as e:
@@ -105,9 +108,9 @@ general_session = sessionmaker(autocommit=False, autoflush=False, bind=general_e
 
 chat_engine = create_engine(chat_db_url)
 chat_session = sessionmaker(autocommit=False, autoflush=False, bind=chat_engine)
-
-recipe_engine = create_engine(recipe_db_url)
-recipe_session = sessionmaker(autocommit=False, autoflush=False, bind=recipe_engine)
+#
+# recipe_engine = create_engine(recipe_db_url)
+# recipe_session = sessionmaker(autocommit=False, autoflush=False, bind=recipe_engine)
 
 # Notification manager for chat database
 class NotificationManager:

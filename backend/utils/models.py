@@ -1,27 +1,28 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime, Float, UniqueConstraint,select,inspect, Table, insert
 from datetime import datetime as dt
 import datetime
-from sqlalchemy.orm import relationship, Mapped
+from sqlalchemy.orm import relationship, Mapped, Session
 from utils.database import Base
-from sqlalchemy.dialects.postgresql import JSON, UUID,JSONB
+
+from sqlalchemy.dialects.postgresql import JSON, UUID,JSONB, ARRAY
 import uuid
 
 
-recipe_ingredient_association = Table(
-    "recipe_ingredient_association",
-    Base.metadata,
-    Column("recipe_id", Integer, ForeignKey("recipes.id"), primary_key=True),
-    Column("ingredient_id", Integer, ForeignKey("ingredients.id"), primary_key=True),
-    Column("quantity", String, nullable=False)  # Store the specific quantity for the recipe
-)
-
-instruction_step_association = Table(
-    "instruction_step_association",
-    Base.metadata,
-    Column("recipe_id", Integer, ForeignKey("recipes.id"), primary_key=True),
-    Column("instruction_id", Integer, ForeignKey("instructions.id"), primary_key=True),
-    Column("step_number", Integer, nullable=False)  # Step number for ordering
-)
+# recipe_ingredient_association = Table(
+#     "recipe_ingredient_association",
+#     Base.metadata,
+#     Column("recipe_id", Integer, ForeignKey("recipes.id"), primary_key=True),
+#     Column("ingredient_id", Integer, ForeignKey("ingredients.id"), primary_key=True),
+#     Column("quantity", String, nullable=False)  # Store the specific quantity for the recipe
+# )
+#
+# instruction_step_association = Table(
+#     "instruction_step_association",
+#     Base.metadata,
+#     Column("recipe_id", Integer, ForeignKey("recipes.id"), primary_key=True),
+#     Column("instruction_id", Integer, ForeignKey("instructions.id"), primary_key=True),
+#     Column("step_number", Integer, nullable=False)  # Step number for ordering
+# )
 
 
 class User(Base):
@@ -56,39 +57,31 @@ class Recipe(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True, nullable=False)
     prepare_time = Column(Integer, nullable=False)
-    ingredients = relationship(
-        "Ingredient",
-        secondary=recipe_ingredient_association,
-        backref="recipes"
-    )
-    instructions = relationship(
-        "InstructionStep",
-        secondary=instruction_step_association,
-        backref="recipes",
-        order_by="InstructionStep.step_number"  # Ensures instructions are ordered
-    )
+    ingredients = Column(ARRAY(String), nullable=False)  # Store ingredients as an array of strings
+    instructions = Column(ARRAY(String), nullable=False)  # Store instructions as an array of strings
     cuisine = Column(String, nullable=True)
     servings = Column(Integer, nullable=False)
     calories = Column(Float, nullable=False)
-    macros = Column(JSONB, nullable=False)
-    needed_equipment = Column(JSONB, nullable=False)
-    tags = Column(JSONB, nullable=True)
+    macros = Column(ARRAY(String), nullable=False)
+    needed_equipment = Column(ARRAY(String), nullable=False)
+    tags = Column(ARRAY(String), nullable=True)
     source = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
 
-class Ingredient(Base):
-    __tablename__ = "ingredients"
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False)
-    unit = Column(String, nullable=True)  # e.g., "g", "ml", "tbsp"
-
-class InstructionStep(Base):
-    __tablename__ = "instructions"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    step_number = Column(Integer, nullable=False)  # Sequence of the step
-    text = Column(String, nullable=False)  # Instruction text
+# class Ingredient(general_Base):
+#     __tablename__ = "ingredients"
+#
+#     id = Column(Integer, primary_key=True, index=True)
+#     name = Column(String, unique=True, nullable=False)
+#     unit = Column(String, nullable=True)  # e.g., "g", "ml", "tbsp"
+#
+# class InstructionStep(general_Base):
+#     __tablename__ = "instructions"
+#
+#     id = Column(Integer, primary_key=True, autoincrement=True)
+#     step_number = Column(Integer, nullable=False)  # Sequence of the step
+#     text = Column(String, nullable=False)  # Instruction text
 
 
 class UserRecipeRating(Base):
@@ -249,3 +242,5 @@ class ChatRoomManager:
         ChatMessageModel = create_chat_model(chat_id, Base.metadata)
 
         return session.query(ChatMessageModel).limit(per_page).offset(offset).all()
+
+

@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, validator
 from typing import List, Optional
 from enum import Enum
+
 # from sqlalchemy.dialects.postgresql import UUID
 from uuid import UUID
 import uuid
@@ -98,10 +99,40 @@ class LoginRequest(BaseModel):
     username: str
     password: str
 
-# Recipe Schemas
+
+# class IngredientSchema(BaseModel):
+#     name: str
+#     unit: Optional[str]
+#
+#     class Config:
+#         from_attributes = True
+#
+#
+# class InstructionStepSchema(BaseModel):
+#     step_number: int
+#     text: str
+#
+#     class Config:
+#         from_attributes = True
+
+
 class RecipeBase(BaseModel):
     title: str
-    instructions: str
+    prepare_time: int
+    cuisine: Optional[str]
+    servings: int
+    calories: float
+    macros: List[str]  # Updated to match ARRAY(String) in the database
+    needed_equipment: List[str]  # Updated to match ARRAY(String) in the database
+    tags: Optional[List[str]] = None
+    source: Optional[str] = None
+    image_url: Optional[str] = None
+    ingredients: List[str]  # Updated to match ARRAY(String)
+    instructions: List[str]  # Updated to match ARRAY(String)
+
+    class Config:
+        from_attributes = True
+
 
 class RecipeRead(RecipeBase):
     id: int
@@ -176,60 +207,93 @@ class ChatRoomMessageList(BaseModel):
     chatroom_id: str = Field(..., description="The unique identifier for the chatroom.")
     messages: List[ChatMessageRead] = Field(..., description="A list of messages in the chatroom.")
 
-def model_to_json(model):
-    """Convert a SQLAlchemy model to a JSON schema."""
-    schema = {
-        "type": "object",
-        "properties": {}
-    }
-
-    # Process columns
-    for column in model.__table__.columns:
-        schema["properties"][column.name] = {
-            "type": map_column_type_to_json(str(column.type)),
-            "nullable": column.nullable,
-            "primary_key": column.primary_key
-        }
-
-    # Process relationships
-    for relationship in model.__mapper__.relationships:
-        if relationship.key == "ingredients":
-            schema["properties"][relationship.key] = {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": model_to_json(relationship.mapper.class_).get("properties")
-                }
-            }
-        elif relationship.key == "instructions":
-            schema["properties"][relationship.key] = {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "step_number": {"type": "integer"},
-                        "text": {"type": "string"}
-                    }
-                }
-            }
-
-    return schema
 
 
-def map_column_type_to_json(column_type):
-    """Map SQLAlchemy column types to JSON schema types."""
-    if column_type.startswith("Integer"):
-        return "integer"
-    elif column_type.startswith("String") or column_type.startswith("Text"):
-        return "string"
-    elif column_type.startswith("Float"):
-        return "number"
-    elif column_type.startswith("Boolean"):
-        return "boolean"
-    elif column_type.startswith("JSON") or column_type.startswith("JSONB"):
-        return "object"
-    elif column_type.startswith("DateTime"):
-        return "string"  # ISO 8601 format
-    else:
-        return "string"  # Fallback for unsupported types
+
+# def model_to_json(model):
+#     """Convert a SQLAlchemy model to a JSON schema."""
+#     schema = {
+#         "type": "object",
+#         "properties": {}
+#     }
+#
+#     # Process columns
+#     for column in model.__table__.columns:
+#         schema["properties"][column.name] = {
+#             "type": map_column_type_to_json(str(column.type)),
+#             "nullable": column.nullable,
+#             "primary_key": column.primary_key
+#         }
+#
+#     # Process relationships
+#     for relationship in model.__mapper__.relationships:
+#         if relationship.key == "ingredients":
+#             schema["properties"][relationship.key] = {
+#                 "type": "array",
+#                 "items": {
+#                     "type": "object",
+#                     "properties": model_to_json(relationship.mapper.class_).get("properties")
+#                 }
+#             }
+#         elif relationship.key == "instructions":
+#             schema["properties"][relationship.key] = {
+#                 "type": "array",
+#                 "items": {
+#                     "type": "object",
+#                     "properties": {
+#                         "step_number": {"type": "integer"},
+#                         "text": {"type": "string"}
+#                     }
+#                 }
+#             }
+#
+#     return schema
+#
+#
+#
+#
+# def model_to_json_old(model):
+#     """Convert a SQLAlchemy model to a JSON schema."""
+#     schema = {}
+#
+#     schema = {
+#         "properties": {}
+#     }
+#     for column in model.__table__.columns:
+#         schema[column.name] = {}
+#
+#     for relationship in model.__mapper__.relationships:
+#         if relationship.key == "ingredients":
+#             schema["properties"][relationship.key] = {
+#                 "items": {
+#                     "properties": model_to_json(relationship.mapper.class_).get("properties")
+#                 }
+#             }
+#         elif relationship.key == "instructions":
+#             schema["properties"][relationship.key] = {
+#                 "items": {
+#                     "properties": {
+#                         "step_number": {"type": "integer"},
+#                         "text": {"type": "string"}
+#                     }
+#                 }
+#             }
+#     return schema
+#
+# def map_column_type_to_json(column_type):
+#     """Map SQLAlchemy column types to JSON schema types."""
+#     if column_type.startswith("Integer"):
+#         return "integer"
+#     elif column_type.startswith("String") or column_type.startswith("Text"):
+#         return "string"
+#     elif column_type.startswith("Float"):
+#         return "number"
+#     elif column_type.startswith("Boolean"):
+#         return "boolean"
+#     elif column_type.startswith("JSON") or column_type.startswith("JSONB"):
+#         return "object"
+#     elif column_type.startswith("DateTime"):
+#         return "string"  # ISO 8601 format
+#     else:
+#         return "string"  # Fallback for unsupported types
 
