@@ -8,7 +8,7 @@ from utils.schemas import (UserRead, CreateChatSchema, ChatSummary,ChatResponseS
 from utils.models import User, ChatsMetadata,ChatRoomManager, create_chat_model
 from utils.database import Base, notification_manager, chat_session, general_session
 from utils.authutils import verify_token, get_current_user
-from utils.openai import process_openai_tasks, llm_model,instructions
+from utils.openai import process_openai_tasks, llm_model
 from typing import List
 from uuid import UUID
 from datetime import datetime as dt
@@ -162,7 +162,7 @@ def create_chat(
     display_name: str = None,
 
 ):
-    print(data)
+    # print(data)
     """
     Create a new chat with the authenticated user as the sole participant.
     """
@@ -186,18 +186,18 @@ def create_chat(
             display_name=display_name,
             thread_id=thread.id
         )
-        background_tasks.add_task(process_openai_tasks, data, display_name, current_user, db, chat_db, client, assistant, thread)
+
         db.add(new_chat)
         db.commit()
         db.refresh(new_chat)  # Refresh to get the auto-generated ID
-
+        background_tasks.add_task(process_openai_tasks, client=client, data=data, db=db, chat_db=chat_db, assistant=assistant,thread=thread,chat=new_chat)
         chat_table_name = str(new_chat.id)  # Use the chat ID as the table name
         inspector = inspect(chat_db.bind)
         if not inspector.has_table(chat_table_name):
             # Dynamically create the table
             ChatMessageTable = create_chat_model(chat_table_name, Base.metadata)
             Base.metadata.create_all(bind=chat_db.bind, tables=[ChatMessageTable])
-        print("response to be sent",new_chat)
+        # print("response to be sent",new_chat)
         return new_chat
 
     except Exception as e:

@@ -1,14 +1,13 @@
 from openai.types.beta.threads import TextContentBlock
-from sqlalchemy import inspect
-from utils.models import ChatsMetadata, create_chat_model, Recipe
-from utils.database import general_session
+from sqlalchemy.orm import Session
+from fastapi import Depends
+from utils.database import general_session, chat_session
 from utils.schemas import RecipeBase
+from utils.models import ChatRoomManager, ChatsMetadata
 from recipes.recipes_utils import add_recipe_to_db, transform_recipe_json
-from openai import OpenAI, types, pagination
+from openai import OpenAI
 from openai.types.beta.thread import Thread
 from openai.types.beta.assistant import Assistant
-from utils.schemas import RecipeBase
-from pydantic import ValidationError
 
 
 from pydantic import BaseModel
@@ -29,19 +28,29 @@ class MessagesResponse(BaseModel):
     data: List[Message]
 
 
+def get_general_db():
+    db = general_session()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+# Chat database connection
+def get_chat_db():
+    db = chat_session()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 logger = logging.getLogger("uvicorn")
 
 wanted_response = RecipeBase.schema()
 
 llm_model = "gpt-4o-mini"
-instructions = (
-            "You are a master dietitian. The user is Dutch, so generate 3 unique recipes in Dutch. "
-            "Use the ingredients and data provided in the JSON input to create new recipes. "
-            "Ensure the response is in JSON format containing exactly 3 recipes, with no extra text or examples. "
-            f"The JSON example is {wanted_response}"
-            "Do not return the provided example or input JSON. Only provide new recipes."
-            "Please respond with valid JSON only. No explanations, just the JSON."
-        )
+
 
 def get_db():
     db = general_session()
@@ -103,16 +112,25 @@ def extract_json_from_messages(message):
 
 
 
-def process_openai_tasks(data, display_name, current_user, db, chat_db, client: OpenAI, assistant: Assistant,
-                         thread: Thread):
+def process_openai_tasks(data, client: OpenAI, assistant: Assistant,
+                         thread: Thread, chat : ChatsMetadata , db: Session = Depends(get_general_db), chat_db: Session = Depends(get_chat_db)):
     try:
+        instructions = (
+            "You are a master dietitian. The user is Dutch, so generate 3 unique recipes in Dutch. "
+            "Use the ingredients and data provided in the JSON input to create new recipes. "
+            "Ensure the response is in JSON format containing exactly 3 recipes, with no extra text or examples. "
+            f"The JSON example is {wanted_response}"
+            "Do not return the provided example or input JSON. Only provide new recipes."
+            "Please respond with valid JSON only. No explanations, just the JSON."
+            f"The personal requirements of the user are: {data}"
+        )
 
         run = client.beta.threads.runs.create_and_poll(
             thread_id=thread.id,
             assistant_id=assistant.id,
             instructions=instructions,
         )
-
+        recipes_list = []
         if run.status == 'completed':
             response = client.beta.threads.messages.list(thread_id=thread.id)
 
@@ -124,18 +142,23 @@ def process_openai_tasks(data, display_name, current_user, db, chat_db, client: 
                                 raw_text = content_block.text.value  # Extract the raw text value
                                 try:
                                     before, recipes, after = extract_json_from_messages(raw_text)
-                                    logger.error(recipes, before, after)
                                     recipes = recipes
 
                                     for recipe in recipes:
                                         try:
                                             recipe = transform_recipe_json(recipe)
                                             processed_recipe = add_recipe_to_db(recipe, db)
-                                            logger.info(f"Converted to RecipeBase: {processed_recipe}")
+                                            recipes_list.append(processed_recipe.id)  # Append to the list
+                                            logger.info(f"Converted to RecipeBase: {processed_recipe.title}")
+
                                         except Exception as e:
                                             logger.error("An error occurred during recipe processing.")
                                             logger.error(f"Raw recipe: {recipe}")
                                             logger.error(f"Traceback: {traceback.format_exc()}")
+
+
+                                    # return recipes_list
+                                    ChatRoomManager.add_message(chat_db, chat.id, "FoodMate", recipes_list)
 
                                 except Exception as e:
                                     logger.error("An error occurred during recipe processing.")
