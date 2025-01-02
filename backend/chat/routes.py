@@ -1,30 +1,29 @@
 # backend/chat/routes.py
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import inspect, select
-from starlette.config import undefined
-from utils.schemas import UserRead, CreateChatSchema, ChatSummary,ChatResponseSchema, UpdateChatMetadata
-from utils.database import SessionLocal as GeneralSession
-from utils.models import User, ChatsMetadata
-from .chat_database.database import SessionLocal as ChatSession
-from .chat_database.models import ChatRoomManager, create_chat_model
-from .chat_database.schemas import ChatMessageRead
-from typing import List
-from .chat_database.database import Base
+from utils.schemas import (UserRead, CreateChatSchema, ChatSummary,ChatResponseSchema, UpdateChatMetadata,ChatMessageRead)
+from utils.models import User, ChatsMetadata,ChatRoomManager, create_chat_model
+from utils.database import Base, notification_manager, chat_session, general_session
 from utils.authutils import verify_token, get_current_user
-import uuid
-from jose import jwt
+from utils.openai import process_openai_tasks
+from typing import List
 from uuid import UUID
-import json
 from datetime import datetime as dt
+from openai import OpenAI
+import uuid
+import json
 import logging
+import os
 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=OPENAI_API_KEY)
 router = APIRouter()
 
 # Set up logging
-logger = logging.getLogger("chat")
+logger = logging.getLogger("uvicorn")
 
 
 def generate_room_id():
@@ -33,7 +32,7 @@ def generate_room_id():
 
 # General database connection
 def get_general_db():
-    db = GeneralSession()
+    db = general_session()
     try:
         yield db
     finally:
@@ -42,7 +41,7 @@ def get_general_db():
 
 # Chat database connection
 def get_chat_db():
-    db = ChatSession()
+    db = chat_session()
     try:
         yield db
     finally:
@@ -89,58 +88,73 @@ async def chat_endpoint(websocket: WebSocket):
     token = websocket.query_params.get("token")
     room = websocket.query_params.get("chatid")
 
-    try:
-        chat_db = next(get_chat_db())
-
-    except Exception as e:
-        await websocket.close(code=1008)
-        logger.error(f"Failed to initialize chat database: {e}")
-        return
-
-    if not token:
+    if not token or not room:
         await websocket.close(code=1008)
         return
 
     try:
         user = verify_token(token)
     except Exception as e:
+        logger.error(f"Token verification failed: {e}")
         await websocket.close(code=1008)
         return
 
+    # Connect WebSocket to the room
     await manager.connect(websocket, room)
+
     try:
+        # Register the listener for database notifications
+        async def notification_handler(connection, pid, channel, payload):
+            try:
+                message_id, chat_id = payload.split(":")
+                if chat_id == room:
+                    # Fetch the latest message from the database
+                    chat_db = next(get_chat_db())
+                    latest_message = ChatRoomManager.get_message_by_id(chat_db, room, message_id)
+                    if latest_message:
+                        broadcast_message = {
+                            "timestamp": latest_message.timestamp.isoformat(),
+                            "sender": latest_message.user_id,
+                            "content": latest_message.message,
+                            "type": "notification",
+                        }
+                        await manager.broadcast(json.dumps(broadcast_message), room)
+            except Exception as e:
+                logger.error(f"Error handling notification: {e}")
+
+        # Add listener for notifications
+        await notification_manager.connection.add_listener('new_message', notification_handler)
+
+        # Handle messages from the WebSocket
         while True:
             data = await websocket.receive_text()
-
-            # print("1")
-            # Add the message to the database
-            if(data):
+            if data:
                 timestamp = dt.utcnow().isoformat()
+                chat_db = next(get_chat_db())
                 ChatRoomManager.add_message(chat_db, room, user.username, data)
                 broadcast_message = {
                     "timestamp": timestamp,
                     "sender": user.username,
                     "content": data,
-                    "type": "received",
+                    "type": "message",
                 }
-                await manager.broadcast_to_others(
-                    websocket, json.dumps(broadcast_message), room=room
-                )
-
-                # print(data)
-                # ChatRoomManager.add_message(chat_db, room, "server", data)
-                # await manager.broadcast(json.dumps(broadcast_message),room=room)
-
+                await manager.broadcast_to_others(websocket, json.dumps(broadcast_message), room)
 
     except WebSocketDisconnect:
-        chat_db.close()
         manager.disconnect(websocket, room)
+        logger.info(f"WebSocket disconnected from room {room}.")
     except Exception as e:
         logger.error(f"Unexpected WebSocket error: {e}")
+        await websocket.close()
+    finally:
+        if notification_manager.connection:
+            await notification_manager.connection.remove_listener('new_message', notification_handler)
+
 
 @router.post("/new", response_model=ChatResponseSchema)
 def create_chat(
     data: dict,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_general_db),
     chat_db: Session = Depends(get_chat_db),
     current_user=Depends(get_current_user),
@@ -152,13 +166,27 @@ def create_chat(
     Create a new chat with the authenticated user as the sole participant.
     """
     try:
+        thread_name = f"{display_name}_{dt.utcnow()}"
         if(display_name == None or display_name == "undefined"):
             display_name = f"Chat_{dt.utcnow()}"
+            thread_name = display_name
         # Use only the current user ID as the participant
+
+
+        assistant = client.beta.assistants.create(
+            name=thread_name,
+            instructions="You are a master dietitian",
+            tools=[],
+            model="gpt-3.5-turbo-0125",
+        )
+        thread = client.beta.threads.create()
+
         new_chat = ChatsMetadata(
             participants=[str(current_user.id)],  # List containing only the current user ID
-            display_name=display_name
+            display_name=display_name,
+            thread_id=thread.id
         )
+        background_tasks.add_task(process_openai_tasks, data, display_name, current_user, db, chat_db, client, assistant, thread)
         db.add(new_chat)
         db.commit()
         db.refresh(new_chat)  # Refresh to get the auto-generated ID
@@ -370,3 +398,6 @@ def update_chat_metadata(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
+
+
+

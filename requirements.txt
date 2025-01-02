@@ -9,3 +9,6 @@ python-dotenv
 python-jose
 passlib
 psycopg2
+asyncpg
+openai
+sql

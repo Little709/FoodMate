@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from utils.database import SessionLocal
+from utils.database import general_session
 from utils.schemas import UserRead, UserCreate, UserUpdate
 from utils.models import User
 from utils.authutils import get_current_user
@@ -8,7 +8,7 @@ from utils.authutils import get_current_user
 router = APIRouter()
 
 def get_db():
-    db = SessionLocal()
+    db = general_session()
     try:
         yield db
     finally:

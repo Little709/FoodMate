@@ -7,14 +7,14 @@ from passlib.context import CryptContext
 from fastapi import HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from utils import models
-from utils.models import User
-from utils.database import SessionLocal
+# from utils import models
+from utils.models import User, BlacklistedToken
+from utils.database import general_session
 from pathlib import Path
 import os
 from dotenv import load_dotenv
 def get_db():
-    db = SessionLocal()
+    db = general_session()
     try:
         yield db
     finally:
@@ -58,7 +58,7 @@ def get_password_hash(password):
 
 
 def authenticate_user(username: str, password: str, db: Session):
-    user = db.query(models.User).filter(models.User.username == username).first()
+    user = db.query(User).filter(User.username == username).first()
     if not user or not verify_password(password, user.hashed_password):
         return None
     return user
@@ -74,7 +74,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 # Add token to blacklist
 def add_token_to_blacklist(token: str, db: Session):
     """Add the token to the blacklist table."""
-    blacklisted_token = models.BlacklistedToken(token=token)
+    blacklisted_token = BlacklistedToken(token=token)
     db.add(blacklisted_token)
     db.commit()
 
@@ -82,7 +82,7 @@ def add_token_to_blacklist(token: str, db: Session):
 # Check if token is blacklisted
 def is_token_blacklisted(token: str, db: Session) -> bool:
     """Check if the token is in the blacklist."""
-    return db.query(models.BlacklistedToken).filter(models.BlacklistedToken.token == token).first() is not None
+    return db.query(BlacklistedToken).filter(BlacklistedToken.token == token).first() is not None
 
 
 # Get the current user and check if the token is blacklisted
@@ -98,7 +98,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
                 detail="Invalid credentials",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        user = db.query(models.User).filter(models.User.username == username).first()
+        user = db.query(User).filter(User.username == username).first()
         logger.debug(f"Found user: {user}")
         if user is None:
             raise HTTPException(
@@ -129,7 +129,7 @@ def verify_token(token: str):
             )
 
         # Check if the user exists in the database
-        with SessionLocal() as db:
+        with general_session() as db:
             user = db.query(User).filter(User.username == username).first()
             if user is None:
                 raise HTTPException(

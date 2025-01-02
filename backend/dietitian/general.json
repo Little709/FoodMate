@@ -1,0 +1,147 @@
+{
+  "guidelines": {
+    "general_recommendations": [
+      "Eat lots of fruit and vegetables.",
+      "Consume mainly wholegrain products such as wholegrain bread, wholegrain pasta, and brown rice.",
+      "Eat less meat and more plant-based foods, and vary with fish, pulses, nuts, eggs, and vegetarian products.",
+      "Consume sufficient dairy products such as milk, yoghurt, and cheese.",
+      "Eat a handful of unsalted nuts daily.",
+      "Consume soft and liquid spreadable fats and cooking fats.",
+      "Drink sufficient amounts of tap water, tea, and coffee."
+    ],
+    "target_groups": {
+      "children": {
+        "1-3_years": {
+          "vegetables": "50-100g",
+          "fruit": "150g",
+          "bread": "2-3 slices",
+          "cereal_products_and_potatoes": "1-2 servings",
+          "nuts_and_seeds": "15g",
+          "dairy_products": "2 servings",
+          "cheese": "0g",
+          "spreadable_and_cooking_fats": "30g",
+          "drinks": "650ml",
+          "fish_and_shellfish": "0.5 serving/week",
+          "legumes": "0.5 serving/week",
+          "meat_maximum": "250g/week",
+          "eggs": "1-2 eggs/week"
+        },
+        "4-8_years": {
+          "vegetables": "100-150g",
+          "fruit": "150g",
+          "bread": "2-4 slices",
+          "cereal_products_and_potatoes": "2-3 servings",
+          "nuts_and_seeds": "15g",
+          "dairy_products": "2 servings",
+          "cheese": "20g",
+          "spreadable_and_cooking_fats": "30g",
+          "drinks": "850ml",
+          "fish_and_shellfish": "0.5 serving/week",
+          "legumes": "1-2 servings/week",
+          "meat_maximum": "250g/week",
+          "eggs": "2-3 eggs/week"
+        }
+      },
+      "adults": {
+        "19-50_years": {
+          "vegetables": "250g",
+          "fruit": "200g",
+          "bread": "6-8 slices",
+          "cereal_products_and_potatoes": "4-5 servings",
+          "nuts_and_seeds": "25g",
+          "dairy_products": "2-3 servings",
+          "cheese": "40g",
+          "spreadable_and_cooking_fats": "65g",
+          "drinks": "1500ml",
+          "fish_and_shellfish": "1 serving/week",
+          "legumes": "2-3 servings/week",
+          "meat_maximum": "500g/week",
+          "eggs": "2-3 eggs/week"
+        },
+        "51-69_years": {
+          "vegetables": "250g",
+          "fruit": "200g",
+          "bread": "4-5 slices",
+          "cereal_products_and_potatoes": "4 servings",
+          "nuts_and_seeds": "15g",
+          "dairy_products": "2-3 servings",
+          "cheese": "40g",
+          "spreadable_and_cooking_fats": "40g",
+          "drinks": "1100ml",
+          "fish_and_shellfish": "1 serving/week",
+          "legumes": "2-3 servings/week",
+          "meat_maximum": "500g/week",
+          "eggs": "2-3 eggs/week"
+        }
+      },
+      "special_groups": {
+        "pregnant": {
+          "additional_foods": {
+            "bread": "+2 slices",
+            "meat": "+25g/day"
+          },
+          "supplements": [
+            "Folic acid",
+            "Vitamin D"
+          ]
+        },
+        "lactating": {
+          "additional_foods": {
+            "nuts": "+25g/day"
+          }
+        },
+        "non_meat": {
+          "replacement": {
+            "nuts": "+2x25g/week",
+            "legumes": "+135g/week",
+            "eggs": "+1 egg/week"
+          },
+          "specific_recommendations": [
+            "Consume foods rich in iron.",
+            "Use sufficient dairy and wholegrain products.",
+            "Choose fortified meat replacements."
+          ]
+        },
+        "non_western": {
+          "specific_recommendations": [
+            "Use leafy green vegetables and margarines for (pro)vitamin A.",
+            "Choose fats and oils rich in alpha-linolenic acid.",
+            "Use vitamin D supplements."
+          ]
+        }
+      }
+    },
+    "nutrient_constraints": {
+      "macronutrients": {
+        "fat": "20-35% of energy",
+        "saturated_fat": "<10% of energy",
+        "protein": "10-35% of energy",
+        "carbohydrates": "45-65% of energy",
+        "fiber": "≥14g per 1000 kcal"
+      },
+      "micronutrients": {
+        "vitamin_d": "3-15 µg/day depending on age and activity",
+        "calcium": "≥1000 mg/day",
+        "iron": "8-18 mg/day",
+        "folate": "400 µg/day for women of childbearing age"
+      }
+    },
+    "environmental_sustainability": [
+      "Consume more plant-based foods and reduce meat consumption to 500g/week, with a maximum of 300g of red meat.",
+      "Choose seasonal and locally grown produce.",
+      "Limit consumption of processed foods."
+    ],
+    "foods_outside_wheel_of_five": {
+      "criteria": {
+        "daily_choices": "3-5 times/day",
+        "weekly_choices": "3 times/week",
+        "limit_factors": [
+          "314 kJ (75 kcal)",
+          "1.7g SFA",
+          "0.5g salt per serving"
+        ]
+      },
+      "recommendation": "Use small servings and avoid frequent consumption."
+    }
+  }
+}

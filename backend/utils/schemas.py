@@ -146,3 +146,90 @@ class UpdateChatMetadata(BaseModel):
     display_name: Optional[str] = None
     last_activity: Optional[datetime] = None
     participants: Optional[List[UUID]] = None  # Example of updating participants, if needed
+
+class ChatMessageBase(BaseModel):
+    user_id: str = Field(..., description="The unique identifier for the user sending the message.")
+    message: str = Field(..., description="The message content.")
+
+class ChatMessageCreate(ChatMessageBase):
+    pass
+
+class ChatMessageRead(ChatMessageBase):
+    id: int  # Auto-incrementing ID for sorting
+    timestamp: datetime
+    type: Optional[str] = None  # Optional field with a default value of None
+
+    class Config:
+        from_attributes = True
+
+class ChatRoomActions(BaseModel):
+    chatroom_id: str = Field(..., description="The unique identifier for the chatroom.")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "chatroom_id": "123e4567-e89b-12d3-a456-426614174000"
+            }
+        }
+
+class ChatRoomMessageList(BaseModel):
+    chatroom_id: str = Field(..., description="The unique identifier for the chatroom.")
+    messages: List[ChatMessageRead] = Field(..., description="A list of messages in the chatroom.")
+
+def model_to_json(model):
+    """Convert a SQLAlchemy model to a JSON schema."""
+    schema = {
+        "type": "object",
+        "properties": {}
+    }
+
+    # Process columns
+    for column in model.__table__.columns:
+        schema["properties"][column.name] = {
+            "type": map_column_type_to_json(str(column.type)),
+            "nullable": column.nullable,
+            "primary_key": column.primary_key
+        }
+
+    # Process relationships
+    for relationship in model.__mapper__.relationships:
+        if relationship.key == "ingredients":
+            schema["properties"][relationship.key] = {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": model_to_json(relationship.mapper.class_).get("properties")
+                }
+            }
+        elif relationship.key == "instructions":
+            schema["properties"][relationship.key] = {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "step_number": {"type": "integer"},
+                        "text": {"type": "string"}
+                    }
+                }
+            }
+
+    return schema
+
+
+def map_column_type_to_json(column_type):
+    """Map SQLAlchemy column types to JSON schema types."""
+    if column_type.startswith("Integer"):
+        return "integer"
+    elif column_type.startswith("String") or column_type.startswith("Text"):
+        return "string"
+    elif column_type.startswith("Float"):
+        return "number"
+    elif column_type.startswith("Boolean"):
+        return "boolean"
+    elif column_type.startswith("JSON") or column_type.startswith("JSONB"):
+        return "object"
+    elif column_type.startswith("DateTime"):
+        return "string"  # ISO 8601 format
+    else:
+        return "string"  # Fallback for unsupported types
+

@@ -1,0 +1,66 @@
+{
+  "comprehensive_diet_for_endometriosis": {
+    "increase": [
+      {
+        "food_group": "Fruits and Vegetables",
+        "details": "Aim for at least 5 servings per day to provide antioxidants and reduce inflammation."
+      },
+      {
+        "food_group": "Omega-3 Fatty Acids",
+        "details": "Consume fatty fish (salmon, mackerel), flaxseeds, chia seeds, and walnuts for anti-inflammatory effects."
+      },
+      {
+        "food_group": "Whole Grains",
+        "details": "Opt for whole grains like quinoa, oats, and brown rice to support hormone regulation."
+      },
+      {
+        "food_group": "Plant-based Proteins",
+        "details": "Include legumes, tofu, and tempeh to replace red and processed meats."
+      },
+      {
+        "food_group": "Anti-inflammatory Herbs and Spices",
+        "details": "Use turmeric, ginger, and garlic to enhance meals and reduce inflammation."
+      },
+      {
+        "food_group": "Probiotic-rich Foods",
+        "details": "Add yogurt, kefir, and fermented foods like sauerkraut to support gut health."
+      }
+    ],
+    "limit": [
+      {
+        "food_group": "Red and Processed Meats",
+        "details": "Limit intake to reduce saturated fats and inflammation."
+      },
+      {
+        "food_group": "Trans Fats",
+        "details": "Avoid foods like margarine, fried snacks, and baked goods high in trans fats."
+      },
+      {
+        "food_group": "Refined Carbohydrates",
+        "details": "Minimize consumption of white bread, pastries, and sugary cereals to prevent blood sugar spikes."
+      },
+      {
+        "food_group": "Caffeine and Alcohol",
+        "details": "Reduce intake to minimize hormonal imbalances and inflammation."
+      }
+    ],
+    "consider": [
+      {
+        "dietary_pattern": "Mediterranean Diet",
+        "details": "Focus on whole, plant-based foods, olive oil, and moderate fish consumption."
+      },
+      {
+        "dietary_pattern": "Gluten-free Diet",
+        "details": "Some individuals with endometriosis may benefit from reducing or eliminating gluten."
+      },
+      {
+        "dietary_pattern": "Low-FODMAP Diet",
+        "details": "Consider reducing high-FODMAP foods if experiencing digestive discomfort."
+      }
+    ],
+    "hydration": {
+      "recommendation": "Stay hydrated with water",
+      "details": "Aim for at least 8 glasses per day to support overall health and reduce bloating."
+    }
+  }
+}

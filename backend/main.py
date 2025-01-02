@@ -6,20 +6,21 @@ from auth.routes import router as auth_router  # Absolute import
 from chat.routes import router as chat_router  # Includes chat-related routes
 from management.routes import router as account_router
 from recipes.routes import router as recipes_router
-from utils.database import Base, engine  # Absolute import
+from utils.database import Base, general_engine as engine, notification_manager  # Absolute import
 from utils.authutils import get_current_user
 import logging
 import os
+# from backend.utils.database import Base, notification_manager
 
 # Set up logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn")
 logging.basicConfig(level=logging.DEBUG)  # You can adjust the level to DEBUG for more verbosity
 
 API_IP = os.getenv("API_IP", "127.0.0.1")
 API_PORT = os.getenv("API_PORT", 8000)
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="FoodMate")
+    app = FastAPI(title="FoodMate", lifespan=lifespan)
 
     # Enable CORS (update the allowed origins in production)
     app.add_middleware(
@@ -60,6 +61,28 @@ def create_app() -> FastAPI:
     )
 
     return app
+
+# Lifespan handler to start notification listening
+async def lifespan(app: FastAPI):
+    logger.info("Registered lifespan app")
+    # Startup operations
+    try:
+        await notification_manager.connect()  # Establish connection to the database
+    except Exception as e:
+        logger.error(f"Error during startup: {e}")
+        raise e  # Exit the app startup if connection fails
+
+    # Pass control to the app
+    yield
+
+    # Shutdown operations
+    if notification_manager.connection:
+        try:
+            await notification_manager.connection.close()
+            logger.info("Database connection closed successfully.")
+        except Exception as e:
+            logger.error(f"Error during shutdown: {e}")
+
 
 
 app = create_app()

@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from utils.database import SessionLocal
+from utils.database import general_session
 from utils.authutils import get_current_user  # Assuming this function decodes and verifies JWT
 from utils import models, schemas
 
 router = APIRouter()
 
 def get_db():
-    db = SessionLocal()
+    db = general_session()
     try:
         yield db
     finally:

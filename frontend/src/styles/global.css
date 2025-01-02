@@ -16,13 +16,11 @@
 .logo {
   display: block;
   margin: 0 auto 20px;
-  width: 200px; /* Adjust width */
+  width: 500px; /* Set your desired width */
   height: auto; /* Maintain aspect ratio */
-  background-image: url('../assets/logo.png'); /* Correct the file path */
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
 }
+
+
 
 
 /* Body styles */
